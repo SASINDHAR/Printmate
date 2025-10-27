@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PrintMate — Doorstep Xerox Delivery</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#ffffff; --accent:#0066cc; --muted:#666;
+    --success:#16a34a; --danger:#dc2626;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{background:linear-gradient(180deg,#f6f8fb 0%, #eef4ff 100%); color:#222; -webkit-font-smoothing:antialiased;}
+  .container{max-width:1100px;margin:24px auto;padding:20px;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(45deg,var(--accent),#004a99);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}
+  nav{display:flex;gap:8px;flex-wrap:wrap}
+  nav button{background:transparent;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  nav button.active, nav button:hover{background:rgba(0,0,0,0.05)}
+  .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(13,38,76,0.06);margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+  .hero{display:flex;flex-direction:column;gap:8px}
+  h1{margin:0;font-size:20px}
+  p.lead{margin:0;color:var(--muted)}
+  .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;font-weight:600;border:0;cursor:pointer}
+  .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(0,102,204,0.12)}
+  form.row{display:flex;gap:8px;flex-wrap:wrap}
+  input[type="file"]{display:block}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  .muted{color:var(--muted);font-size:13px}
+  .small{font-size:13px;color:var(--muted)}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .item{padding:10px;border-radius:8px;border:1px dashed #e6eefc;background:linear-gradient(180deg,#fff,#fbfdff)}
+  .order-box{display:flex;flex-direction:column;gap:8px}
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+  /* login modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(10,20,40,0.45);display:flex;align-items:center;justify-content:center;z-index:50}
+  .login-card{width:360px;background:var(--card);padding:20px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
+  .field{display:flex;flex-direction:column;margin-bottom:12px}
+  input[type="text"],input[type="password"],select{padding:10px;border-radius:8px;border:1px solid #e6eefc;font-size:14px}
+  .hidden{display:none}
+  .success{color:var(--success);font-weight:700}
+  .danger{color:var(--danger);font-weight:700}
+  /* small UI bits */
+  .row{display:flex;gap:8px;align-items:center}
+  .center{display:flex;align-items:center;justify-content:center}
+  .badge{background:#eef6ff;color:var(--accent);padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
+  .partner-list{display:flex;flex-direction:column;gap:8px}
+  .preview{border-radius:8px;border:1px solid #eee;padding:8px;background:#fafafa;font-size:13px}
+  .note{font-size:13px;color:#555}
+  .logout{background:#fff;color:#444;border:1px solid #eee;padding:8px;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+  <!-- Simple client-side app -->
+  <div class="container" id="app" aria-live="polite">
+    <header>
+      <div class="brand">
+        <div class="logo">PM</div>
+        <div>
+          <div style="font-weight:800">PrintMate</div>
+          <div class="small muted">Printing delivered to your door</div>
+        </div>
+      </div>
+
+      <div id="topControls" class="center">
+        <div id="userGreeting" class="muted small"></div>
+        <button id="btnLogout" class="logout hidden" title="Log out">Log out</button>
+      </div>
+    </header>
+
+    <div class="card grid">
+      <main id="mainContent">
+        <!-- Home -->
+        <section id="homePage" class="">
+          <div class="hero card" style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <h1>Printing made simple</h1>
+                <p class="lead">Upload files, choose options and get them at your doorstep in 30–60 minutes.</p>
+              </div>
+              <div class="center" style="gap:10px">
+                <div class="badge">Fast • Local • Safe</div>
+                <button class="btn" onclick="goTo('orderPage')">Order Now</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">How PrintMate works</h3>
+            <div class="list">
+              <div class="item"><strong>1.</strong> Upload your file on Order page.</div>
+              <div class="item"><strong>2.</strong> Choose color, paper and copies.</div>
+              <div class="item"><strong>3.</strong> Pay online (demo) and get delivery.</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">Quick features</h3>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <div class="item" style="min-width:180px">Same-day delivery (demo)</div>
+              <div class="item" style="min-width:180px">Secure file handling</div>
+              <div class="item" style="min-width:180px">Student & office plans</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Order -->
+        <section id="orderPage" class="hidden">
+          <div class="card">
+            <h2 style="margin-top:0">Place an Order</h2>
+            <p class="small muted">This is a demo. Files are processed in your browser only. No data is sent to server.</p>
+
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="flex:1;min-width:260px">
+                <label>Choose file to print</label>
+                <input type="file" id="fileInput" accept=".pdf,image/*,.docx,.doc" />
+                <div id="filePreview" class="preview small" style="margin-top:8px">No file selected</div>
+
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <div style="flex:1">
+                    <label>Format</label>
+                    <select id="format">
+                      <option value="bw">Black & White</option>
+                      <option value="color">Color</option>
+                    </select>
+                  </div>
+                  <div style="width:110px">
+                    <label>Copies</label>
+                    <input id="copies" type="number" value="1" min="1" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefc" />
+                  </div>
+                </div>
+
+                <div style="margin-top:12px">
+                  <label>Paper type</label>
+                  <select id="paper">
+                    <option>Standard (A4)</option>
+                    <option>Premium (A4)</option>
+                    <option>Letter</option>
+                  </select>
+                </div>
+
+                <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+                  <button class="btn" id="placeOrderBtn">Place Order</button>
+                  <button class="btn secondary" onclick="simulateClearOrder()">Clear</button>
+                </div>
+
+                <div id="orderStatus" style="margin-top:10px" class="muted small"></div>
+              </div>
+
+              <aside style="width:320px;min-width:220px">
+                <div class="card">
+                  <h3 style="margin-top:0">Order summary</h3>
+                  <div class="order-box">
+                    <div><strong>File:</strong> <span id="s_file">—</span></div>
+                    <div><strong>Copies:</strong> <span id="s_copies">1</span></div>
+                    <div><strong>Format:</strong> <span id="s_format">B/W</span></div>
+                    <div><strong>Paper:</strong> <span id="s_paper">Standard (A4)</span></div>
+                    <div><strong>Estimated time:</strong> <span id="s_eta">—</span></div>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top:12px">
+                  <h3 style="margin-top:0">Demo Payment (no real payment)</h3>
+                  <p class="small muted">Click the button to simulate payment and delivery.</p>
+                  <button class="btn" id="payBtn">Pay & Start Delivery</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pricing -->
+        <section id="pricingPage" class="hidden">
+          <div class="card">
+            <h2 style="margin-top:0">Pricing</h2>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <div style="flex:1;min-width:220px" class="card">
+                <h3 style="margin:0">Single Print</h3>
+                <div class="muted small">B/W: €0.10 / page</div>
+                <div class="muted small">Color: €0.50 / page</div>
+              </div>
+              <div style="flex:1;min-width:220px" class="card">
+                <h3 style="margin:0">Student Plan</h3>
+                <div class="muted small">20 pages/month — €3.50</div>
+              </div>
+              <div style="flex:1;min-width:220px" class="card">
+                <h3 style="margin:0">Office Bundle</h3>
+                <div class="muted small">Custom pricing for bulk orders</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Partners -->
+        <section id="partnersPage" class="hidden">
+          <div class="card">
+            <h2 style="margin-top:0">Key Partners</h2>
+            <div class="partner-list">
+              <div class="item"><strong>Local Print Shops</strong><div class="small muted">They print orders quickly nearby.</div></div>
+              <div class="item"><strong>Delivery Partners</strong><div class="small muted">Courier or e-bike riders who bring prints to homes.</div></div>
+              <div class="item"><strong>Schools & Offices</strong><div class="small muted">Long-term customers and subscription partners.</div></div>
+              <div class="item"><strong>Cloud Providers</strong><div class="small muted">Store and protect files safely.</div></div>
+              <div class="item"><strong>Payment Apps</strong><div class="small muted">Allow fast online checkout.</div></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">Success examples (real companies)</h3>
+            <div class="small muted">
+              Printt (UK) • Printo (India) • FedEx Office (USA)
+            </div>
+          </div>
+        </section>
+
+        <!-- About -->
+        <section id="aboutPage" class="hidden">
+          <div class="card">
+            <h2 style="margin-top:0">About PrintMate</h2>
+            <p class="small muted">PrintMate is a demo startup idea for delivering prints to your home. This simple website shows how users can upload files, choose options, and get deliveries quickly. For a real product you'll need a backend that handles secure uploads, payments and order routing.</p>
+            <h4>Contact</h4>
+            <div class="small muted">Email: hello@printmate.example (demo)</div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Right column: navigation & info -->
+      <aside>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:800">Menu</div>
+              <div class="small muted">Click a page to open</div>
+            </div>
+            <div><span class="small muted">v1.0 (demo)</span></div>
+          </div>
+
+          <nav style="margin-top:12px" id="mainNav" aria-label="Main navigation">
+            <button onclick="goTo('homePage')" class="active">Home</button>
+            <button onclick="goTo('orderPage')">Order</button>
+            <button onclick="goTo('pricingPage')">Pricing</button>
+            <button onclick="goTo('partnersPage')">Partners</button>
+            <button onclick="goTo('aboutPage')">About</button>
+          </nav>
+
+          <div style="margin-top:12px">
+            <div class="small muted">Fast tip:</div>
+            <div class="note">Use the Order page to try a full demo of upload → payment → delivery (all local).</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4 style="margin-top:0">Recent demo orders</h4>
+          <div id="recentOrders" class="list">
+            <div class="item small muted">No orders yet</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4 style="margin-top:0">Why choose PrintMate</h4>
+          <ul class="small muted">
+            <li>Doorstep delivery</li>
+            <li>Secure handling</li>
+            <li>Quick turnaround</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <footer>PrintMate demo • For real use you must add a secure backend and payment gateway.</footer>
+  </div>
+
+  <!-- Login modal -->
+  <div id="loginModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="login-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div style="font-weight:800;font-size:18px">Sign in to PrintMate</div>
+          <div class="small muted">Demo credentials: <strong>sasi</strong> / <strong>sasi</strong></div>
+        </div>
+        <div class="logo" style="width:40px;height:40px;font-size:14px">PM</div>
+      </div>
+      <div id="loginError" class="danger small" style="display:none;margin-bottom:8px"></div>
+      <div class="field">
+        <label>Username</label>
+        <input id="loginUser" type="text" value="sasi" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPass" type="password" value="sasi" />
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+        <button id="loginBtn" class="btn">Sign in</button>
+        <div class="small muted">No account? This demo uses the single demo account.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  PrintMate demo front-end app (client-side only).
+  - Login: username 'sasi' and password 'sasi'
+  - All file handling is local in the browser (no upload to server).
+  - This is for demo and prototyping only. Do not use client-side auth in production.
+*/
+
+const AUTH_USER = 'sasi';
+const AUTH_PASS = 'sasi';
+const storageKey = 'printmate_demo_session';
+
+function $(id){return document.getElementById(id);}
+
+function showLogin(show=true){
+  $('loginModal').style.display = show ? 'flex' : 'none';
+}
+
+function setLoggedIn(user){
+  localStorage.setItem(storageKey, JSON.stringify({user, ts:Date.now()}));
+  $('userGreeting').textContent = 'Hi, ' + user;
+  $('btnLogout').classList.remove('hidden');
+  showLogin(false);
+}
+
+function clearSession(){
+  localStorage.removeItem(storageKey);
+  $('userGreeting').textContent = '';
+  $('btnLogout').classList.add('hidden');
+  showLogin(true);
+}
+
+function checkAuth(){
+  const s = localStorage.getItem(storageKey);
+  if(!s) { showLogin(true); return false; }
+  try{
+    const obj = JSON.parse(s);
+    if(obj.user) {
+      $('userGreeting').textContent = 'Hi, ' + obj.user;
+      $('btnLogout').classList.remove('hidden');
+      showLogin(false);
+      return true;
+    }
+  }catch(e){}
+  showLogin(true);
+  return false;
+}
+
+// Login handling
+$('loginBtn').addEventListener('click', ()=>{
+  const u = $('loginUser').value.trim();
+  const p = $('loginPass').value;
+  if(u === AUTH_USER && p === AUTH_PASS){
+    setLoggedIn(u);
+  } else {
+    const e = $('loginError'); e.style.display='block';
+    e.textContent = 'Wrong username or password. Use demo: sasi / sasi';
+  }
+});
+
+// Logout
+$('btnLogout').addEventListener('click', ()=>{
+  clearSession();
+  // return to home page
+  goTo('homePage');
+});
+
+// Navigation
+function goTo(id){
+  const pages = ['homePage','orderPage','pricingPage','partnersPage','aboutPage'];
+  pages.forEach(p => $(p).classList.add('hidden'));
+  $(id).classList.remove('hidden');
+
+  // mark active button
+  Array.from(document.querySelectorAll('#mainNav button')).forEach(b=>b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('#mainNav button')).find(b=>b.textContent.toLowerCase() === id.replace('Page',''));
+  if(btn) btn.classList.add('active');
+}
+
+// File input preview
+$('fileInput').addEventListener('change', (ev)=>{
+  const file = ev.target.files && ev.target.files[0];
+  if(!file){ $('filePreview').textContent = 'No file selected'; $('s_file').textContent='—'; return; }
+  $('s_file').textContent = file.name;
+  $('filePreview').textContent = file.name + ' — ' + Math.round(file.size/1024) + ' KB';
+});
+
+// Place order (local simulation)
+$('placeOrderBtn').addEventListener('click', ()=>{
+  const f = $('fileInput').files && $('fileInput').files[0];
+  if(!f){ alert('Please choose a file to print.'); return; }
+  const copies = Math.max(1, parseInt($('copies').value||1));
+  const format = $('format').value === 'color' ? 'Color' : 'B/W';
+  const paper = $('paper').value;
+  $('s_copies').textContent = copies;
+  $('s_format').textContent = format;
+  $('s_paper').textContent = paper;
+  // simulated ETA
+  const eta = Math.floor(30 + Math.random()*30); // 30-60 mins
+  $('s_eta').textContent = eta + ' minutes';
+  $('orderStatus').textContent = 'Order created. Click "Pay & Start Delivery" to continue.';
+});
+
+// Simulate payment and delivery
+$('payBtn').addEventListener('click', ()=>{
+  const fileName = $('s_file').textContent;
+  if(fileName === '—' || fileName === '') { alert('Please select a file first on the Order page.'); return; }
+  $('payBtn').disabled = true;
+  $('payBtn').textContent = 'Processing...';
+  $('orderStatus').textContent = 'Processing payment and sending to print shop...';
+
+  // Simulate async steps with timers (all local)
+  setTimeout(()=> {
+    $('orderStatus').textContent = 'Print job received by print shop.';
+    $('payBtn').textContent = 'Starting delivery';
+  }, 1200);
+
+  setTimeout(()=> {
+    $('orderStatus').textContent = 'Out for delivery. Rider on the way.';
+    addRecentOrder({file: fileName, time: new Date(), status: 'Out for delivery'});
+    $('payBtn').textContent = 'In delivery';
+  }, 2400);
+
+  setTimeout(()=> {
+    $('orderStatus').textContent = 'Delivered. Thank you for using PrintMate!';
+    $('payBtn').textContent = 'Delivered';
+    $('payBtn').disabled = false;
+  }, 5200);
+});
+
+// Recent orders list (local)
+function addRecentOrder(order){
+  // store in localStorage
+  const key = 'printmate_demo_orders';
+  let arr = [];
+  try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = [];}
+  arr.unshift({file: order.file, time: order.time, status: order.status});
+  if(arr.length>10) arr = arr.slice(0,10);
+  localStorage.setItem(key, JSON.stringify(arr));
+  renderOrders();
+}
+function renderOrders(){
+  const key = 'printmate_demo_orders';
+  let arr = [];
+  try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = [];}
+  const container = $('recentOrders');
+  container.innerHTML = '';
+  if(arr.length===0){
+    container.innerHTML = '<div class="item small muted">No orders yet</div>'; return;
+  }
+  arr.forEach(o=>{
+    const d = new Date(o.time);
+    const el = document.createElement('div');
+    el.className = 'item small';
+    el.innerHTML = '<strong>'+escapeHtml(o.file)+'</strong><div class="small muted">'+d.toLocaleString()+' • '+o.status+'</div>';
+    container.appendChild(el);
+  });
+}
+
+// Clear demo order inputs
+function simulateClearOrder(){
+  $('fileInput').value = '';
+  $('filePreview').textContent = 'No file selected';
+  $('s_file').textContent = '—';
+  $('s_eta').textContent = '—';
+  $('orderStatus').textContent = '';
+}
+
+// simple helper
+function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// initialize
+(function init(){
+  renderOrders();
+  if(!checkAuth()){
+    showLogin(true);
+  } else {
+    showLogin(false);
+  }
+  goTo('homePage');
+})();
+
+</script>
+</body>
+</html>
