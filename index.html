@@ -51,10 +51,28 @@
   .preview{border-radius:8px;border:1px solid #eee;padding:8px;background:#fafafa;font-size:13px}
   .note{font-size:13px;color:#555}
   .logout{background:#fff;color:#444;border:1px solid #eee;padding:8px;border-radius:8px;cursor:pointer}
+  /* delivery animation */
+  #mapArea {
+    margin-top:12px; 
+    height:100px; 
+    border:1px solid #e6eefc; 
+    border-radius:8px;
+    background:linear-gradient(90deg,#cce4ff,#eaf4ff);
+    display:flex;align-items:center;justify-content:space-between;padding:0 10px;
+    overflow:hidden;
+  }
+  .rider {
+    font-size:24px;
+    animation:moveRider 4s linear infinite;
+    position:relative;
+  }
+  @keyframes moveRider {
+    0% { transform:translateX(0); }
+    100% { transform:translateX(280px); }
+  }
 </style>
 </head>
 <body>
-  <!-- Simple client-side app -->
   <div class="container" id="app" aria-live="polite">
     <header>
       <div class="brand">
@@ -94,15 +112,6 @@
               <div class="item"><strong>1.</strong> Upload your file on Order page.</div>
               <div class="item"><strong>2.</strong> Choose color, paper and copies.</div>
               <div class="item"><strong>3.</strong> Pay online (demo) and get delivery.</div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">Quick features</h3>
-            <div style="display:flex;gap:12px;flex-wrap:wrap">
-              <div class="item" style="min-width:180px">Same-day delivery (demo)</div>
-              <div class="item" style="min-width:180px">Secure file handling</div>
-              <div class="item" style="min-width:180px">Student & office plans</div>
             </div>
           </div>
         </section>
@@ -148,6 +157,12 @@
                 </div>
 
                 <div id="orderStatus" style="margin-top:10px" class="muted small"></div>
+
+                <div id="mapArea" class="hidden">
+                  <div>🏠</div>
+                  <div class="rider">🛵</div>
+                  <div>📍</div>
+                </div>
               </div>
 
               <aside style="width:320px;min-width:220px">
@@ -158,6 +173,7 @@
                     <div><strong>Copies:</strong> <span id="s_copies">1</span></div>
                     <div><strong>Format:</strong> <span id="s_format">B/W</span></div>
                     <div><strong>Paper:</strong> <span id="s_paper">Standard (A4)</span></div>
+                    <div><strong>Total cost:</strong> <span id="s_cost">€0.00</span></div>
                     <div><strong>Estimated time:</strong> <span id="s_eta">—</span></div>
                   </div>
                 </div>
@@ -206,20 +222,13 @@
               <div class="item"><strong>Payment Apps</strong><div class="small muted">Allow fast online checkout.</div></div>
             </div>
           </div>
-
-          <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">Success examples (real companies)</h3>
-            <div class="small muted">
-              Printt (UK) • Printo (India) • FedEx Office (USA)
-            </div>
-          </div>
         </section>
 
         <!-- About -->
         <section id="aboutPage" class="hidden">
           <div class="card">
             <h2 style="margin-top:0">About PrintMate</h2>
-            <p class="small muted">PrintMate is a demo startup idea for delivering prints to your home. This simple website shows how users can upload files, choose options, and get deliveries quickly. For a real product you'll need a backend that handles secure uploads, payments and order routing.</p>
+            <p class="small muted">PrintMate is a demo startup idea for delivering prints to your home. This simple website shows how users can upload files, choose options, and get deliveries quickly.</p>
             <h4>Contact</h4>
             <div class="small muted">Email: hello@printmate.example (demo)</div>
           </div>
@@ -227,7 +236,7 @@
 
       </main>
 
-      <!-- Right column: navigation & info -->
+      <!-- Right column -->
       <aside>
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -235,7 +244,7 @@
               <div style="font-weight:800">Menu</div>
               <div class="small muted">Click a page to open</div>
             </div>
-            <div><span class="small muted">v1.0 (demo)</span></div>
+            <div><span class="small muted">v1.1 (demo)</span></div>
           </div>
 
           <nav style="margin-top:12px" id="mainNav" aria-label="Main navigation">
@@ -245,11 +254,6 @@
             <button onclick="goTo('partnersPage')">Partners</button>
             <button onclick="goTo('aboutPage')">About</button>
           </nav>
-
-          <div style="margin-top:12px">
-            <div class="small muted">Fast tip:</div>
-            <div class="note">Use the Order page to try a full demo of upload → payment → delivery (all local).</div>
-          </div>
         </div>
 
         <div class="card" style="margin-top:12px">
@@ -257,15 +261,6 @@
           <div id="recentOrders" class="list">
             <div class="item small muted">No orders yet</div>
           </div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h4 style="margin-top:0">Why choose PrintMate</h4>
-          <ul class="small muted">
-            <li>Doorstep delivery</li>
-            <li>Secure handling</li>
-            <li>Quick turnaround</li>
-          </ul>
         </div>
       </aside>
     </div>
@@ -294,193 +289,93 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
         <button id="loginBtn" class="btn">Sign in</button>
-        <div class="small muted">No account? This demo uses the single demo account.</div>
+        <div class="small muted">No account? This demo uses one shared account.</div>
       </div>
     </div>
   </div>
 
 <script>
-/*
-  PrintMate demo front-end app (client-side only).
-  - Login: username 'sasi' and password 'sasi'
-  - All file handling is local in the browser (no upload to server).
-  - This is for demo and prototyping only. Do not use client-side auth in production.
-*/
-
-const AUTH_USER = 'sasi';
-const AUTH_PASS = 'sasi';
-const storageKey = 'printmate_demo_session';
-
+const AUTH_USER='sasi',AUTH_PASS='sasi',storageKey='printmate_demo_session';
 function $(id){return document.getElementById(id);}
-
-function showLogin(show=true){
-  $('loginModal').style.display = show ? 'flex' : 'none';
-}
-
-function setLoggedIn(user){
-  localStorage.setItem(storageKey, JSON.stringify({user, ts:Date.now()}));
-  $('userGreeting').textContent = 'Hi, ' + user;
-  $('btnLogout').classList.remove('hidden');
-  showLogin(false);
-}
-
-function clearSession(){
-  localStorage.removeItem(storageKey);
-  $('userGreeting').textContent = '';
-  $('btnLogout').classList.add('hidden');
-  showLogin(true);
-}
-
-function checkAuth(){
-  const s = localStorage.getItem(storageKey);
-  if(!s) { showLogin(true); return false; }
-  try{
-    const obj = JSON.parse(s);
-    if(obj.user) {
-      $('userGreeting').textContent = 'Hi, ' + obj.user;
-      $('btnLogout').classList.remove('hidden');
-      showLogin(false);
-      return true;
-    }
-  }catch(e){}
-  showLogin(true);
-  return false;
-}
-
-// Login handling
-$('loginBtn').addEventListener('click', ()=>{
-  const u = $('loginUser').value.trim();
-  const p = $('loginPass').value;
-  if(u === AUTH_USER && p === AUTH_PASS){
-    setLoggedIn(u);
-  } else {
-    const e = $('loginError'); e.style.display='block';
-    e.textContent = 'Wrong username or password. Use demo: sasi / sasi';
-  }
-});
-
-// Logout
-$('btnLogout').addEventListener('click', ()=>{
-  clearSession();
-  // return to home page
-  goTo('homePage');
-});
+function showLogin(show=true){$('loginModal').style.display=show?'flex':'none';}
+function setLoggedIn(user){localStorage.setItem(storageKey,JSON.stringify({user,ts:Date.now()}));$('userGreeting').textContent='Hi, '+user;$('btnLogout').classList.remove('hidden');showLogin(false);}
+function clearSession(){localStorage.removeItem(storageKey);$('userGreeting').textContent='';$('btnLogout').classList.add('hidden');showLogin(true);}
+function checkAuth(){const s=localStorage.getItem(storageKey);if(!s){showLogin(true);return false;}try{const obj=JSON.parse(s);if(obj.user){$('userGreeting').textContent='Hi, '+obj.user;$('btnLogout').classList.remove('hidden');showLogin(false);return true;}}catch(e){}showLogin(true);return false;}
+$('loginBtn').addEventListener('click',()=>{const u=$('loginUser').value.trim(),p=$('loginPass').value;if(u===AUTH_USER&&p===AUTH_PASS){setLoggedIn(u);}else{$('loginError').style.display='block';$('loginError').textContent='Invalid credentials';}});
+$('btnLogout').addEventListener('click',clearSession);
 
 // Navigation
-function goTo(id){
-  const pages = ['homePage','orderPage','pricingPage','partnersPage','aboutPage'];
-  pages.forEach(p => $(p).classList.add('hidden'));
-  $(id).classList.remove('hidden');
+function goTo(id){for(const s of document.querySelectorAll('main section'))s.classList.add('hidden');$(id).classList.remove('hidden');for(const b of document.querySelectorAll('nav button'))b.classList.remove('active');const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.replace('Page','')));if(btn)btn.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 
-  // mark active button
-  Array.from(document.querySelectorAll('#mainNav button')).forEach(b=>b.classList.remove('active'));
-  const btn = Array.from(document.querySelectorAll('#mainNav button')).find(b=>b.textContent.toLowerCase() === id.replace('Page',''));
-  if(btn) btn.classList.add('active');
+// Order logic
+let currentFile=null;
+$('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f){$('filePreview').textContent='No file selected';return;}currentFile=f;$('filePreview').textContent=f.name+' ('+(f.size/1024).toFixed(1)+' KB)';updateSummary();});
+['format','paper','copies'].forEach(id=>$(id).addEventListener('input',updateSummary));
+
+function calcCost(fmt,copies){
+  let base=fmt==='color'?0.5:0.1;
+  return base*copies;
 }
 
-// File input preview
-$('fileInput').addEventListener('change', (ev)=>{
-  const file = ev.target.files && ev.target.files[0];
-  if(!file){ $('filePreview').textContent = 'No file selected'; $('s_file').textContent='—'; return; }
-  $('s_file').textContent = file.name;
-  $('filePreview').textContent = file.name + ' — ' + Math.round(file.size/1024) + ' KB';
-});
-
-// Place order (local simulation)
-$('placeOrderBtn').addEventListener('click', ()=>{
-  const f = $('fileInput').files && $('fileInput').files[0];
-  if(!f){ alert('Please choose a file to print.'); return; }
-  const copies = Math.max(1, parseInt($('copies').value||1));
-  const format = $('format').value === 'color' ? 'Color' : 'B/W';
-  const paper = $('paper').value;
-  $('s_copies').textContent = copies;
-  $('s_format').textContent = format;
-  $('s_paper').textContent = paper;
-  // simulated ETA
-  const eta = Math.floor(30 + Math.random()*30); // 30-60 mins
-  $('s_eta').textContent = eta + ' minutes';
-  $('orderStatus').textContent = 'Order created. Click "Pay & Start Delivery" to continue.';
-});
-
-// Simulate payment and delivery
-$('payBtn').addEventListener('click', ()=>{
-  const fileName = $('s_file').textContent;
-  if(fileName === '—' || fileName === '') { alert('Please select a file first on the Order page.'); return; }
-  $('payBtn').disabled = true;
-  $('payBtn').textContent = 'Processing...';
-  $('orderStatus').textContent = 'Processing payment and sending to print shop...';
-
-  // Simulate async steps with timers (all local)
-  setTimeout(()=> {
-    $('orderStatus').textContent = 'Print job received by print shop.';
-    $('payBtn').textContent = 'Starting delivery';
-  }, 1200);
-
-  setTimeout(()=> {
-    $('orderStatus').textContent = 'Out for delivery. Rider on the way.';
-    addRecentOrder({file: fileName, time: new Date(), status: 'Out for delivery'});
-    $('payBtn').textContent = 'In delivery';
-  }, 2400);
-
-  setTimeout(()=> {
-    $('orderStatus').textContent = 'Delivered. Thank you for using PrintMate!';
-    $('payBtn').textContent = 'Delivered';
-    $('payBtn').disabled = false;
-  }, 5200);
-});
-
-// Recent orders list (local)
-function addRecentOrder(order){
-  // store in localStorage
-  const key = 'printmate_demo_orders';
-  let arr = [];
-  try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = [];}
-  arr.unshift({file: order.file, time: order.time, status: order.status});
-  if(arr.length>10) arr = arr.slice(0,10);
-  localStorage.setItem(key, JSON.stringify(arr));
-  renderOrders();
+function updateSummary(){
+  const fmt=$('format').value, copies=parseInt($('copies').value)||1, paper=$('paper').value;
+  const cost=calcCost(fmt,copies);
+  $('s_file').textContent=currentFile?currentFile.name:'—';
+  $('s_copies').textContent=copies;
+  $('s_format').textContent=fmt==='color'?'Color':'B/W';
+  $('s_paper').textContent=paper;
+  $('s_cost').textContent='€'+cost.toFixed(2);
+  $('s_eta').textContent='~'+(20+Math.round(Math.random()*20))+' min';
 }
-function renderOrders(){
-  const key = 'printmate_demo_orders';
-  let arr = [];
-  try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = [];}
-  const container = $('recentOrders');
-  container.innerHTML = '';
-  if(arr.length===0){
-    container.innerHTML = '<div class="item small muted">No orders yet</div>'; return;
-  }
-  arr.forEach(o=>{
-    const d = new Date(o.time);
-    const el = document.createElement('div');
-    el.className = 'item small';
-    el.innerHTML = '<strong>'+escapeHtml(o.file)+'</strong><div class="small muted">'+d.toLocaleString()+' • '+o.status+'</div>';
-    container.appendChild(el);
+
+$('placeOrderBtn').addEventListener('click',()=>{
+  if(!currentFile){$('orderStatus').innerHTML='<span class="danger">Please choose a file.</span>';return;}
+  const copies=parseInt($('copies').value)||1;
+  const fmt=$('format').value;
+  const cost=calcCost(fmt,copies);
+  $('orderStatus').innerHTML='<span class="success">Order placed successfully.</span> Total: €'+cost.toFixed(2);
+  saveRecent(currentFile.name,cost);
+  updateSummary();
+});
+
+$('payBtn').addEventListener('click',()=>{
+  if(!$('s_file').textContent||$('s_file').textContent==='—'){$('orderStatus').innerHTML='<span class="danger">Please place an order first.</span>';return;}
+  $('orderStatus').innerHTML='<span class="success">Payment successful! Delivery in progress...</span>';
+  $('mapArea').classList.remove('hidden');
+});
+
+function simulateClearOrder(){
+  currentFile=null;
+  $('fileInput').value='';
+  $('filePreview').textContent='No file selected';
+  $('orderStatus').textContent='';
+  $('mapArea').classList.add('hidden');
+  updateSummary();
+}
+
+function saveRecent(file,cost){
+  let list=JSON.parse(localStorage.getItem('printmate_recent')||'[]');
+  list.unshift({file,cost,ts:Date.now()});
+  list=list.slice(0,5);
+  localStorage.setItem('printmate_recent',JSON.stringify(list));
+  renderRecent();
+}
+
+function renderRecent(){
+  const list=JSON.parse(localStorage.getItem('printmate_recent')||'[]');
+  const el=$('recentOrders');el.innerHTML='';
+  if(!list.length){el.innerHTML='<div class="item small muted">No orders yet</div>';return;}
+  list.forEach(o=>{
+    const div=document.createElement('div');div.className='item small';
+    div.textContent=`${o.file} — €${o.cost.toFixed(2)}`;
+    el.appendChild(div);
   });
 }
 
-// Clear demo order inputs
-function simulateClearOrder(){
-  $('fileInput').value = '';
-  $('filePreview').textContent = 'No file selected';
-  $('s_file').textContent = '—';
-  $('s_eta').textContent = '—';
-  $('orderStatus').textContent = '';
-}
-
-// simple helper
-function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// initialize
-(function init(){
-  renderOrders();
-  if(!checkAuth()){
-    showLogin(true);
-  } else {
-    showLogin(false);
-  }
-  goTo('homePage');
-})();
-
+// init
+checkAuth();
+renderRecent();
+updateSummary();
 </script>
 </body>
 </html>
