@@ -6,18 +6,14 @@
 <title>PrintMate — Lightweight</title>
 <meta name="description" content="Lightweight PrintMate frontend — low-bandwidth friendly, offline-capable." />
 <style>
-  /* Minimal, mobile-first styling */
-  :root{
-    --bg:#f7fafc; --card:#fff; --muted:#6b7280; --primary:#334155; --accent:#4f46e5;
-  }
+  :root{--bg:#f7fafc;--card:#fff;--muted:#6b7280;--primary:#334155;--accent:#4f46e5}
   html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; background:var(--bg); color:var(--primary); -webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--primary);-webkit-font-smoothing:antialiased}
   .wrap{max-width:980px;margin:0 auto;padding:16px}
   header{display:flex;align-items:center;gap:12px;padding:12px 0}
   .logo{width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
   h1{font-size:18px;margin:0}
   p.lead{margin:6px 0 14px;color:var(--muted);font-size:13px}
-
   main{display:grid;grid-template-columns:1fr;gap:14px}
   .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 0 rgba(16,24,40,0.04)}
   .buttons{display:flex;gap:8px;flex-wrap:wrap}
@@ -25,35 +21,24 @@
   button.ghost{background:transparent;color:var(--primary);border:1px solid #e6e9ef}
   .small{font-size:13px;padding:8px 10px;border-radius:8px}
   label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
-  input[type="text"], input[type="tel"], select, input[type="number"], textarea{
-    width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;box-sizing:border-box;margin-bottom:10px;
-  }
-
+  input[type="text"], input[type="tel"], select, input[type="number"], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;box-sizing:border-box;margin-bottom:10px}
   .grid-2{display:grid;grid-template-columns:1fr;gap:10px}
-  @media(min-width:720px){ .grid-2{grid-template-columns:2fr 1fr} }
-
+  @media(min-width:720px){.grid-2{grid-template-columns:2fr 1fr}}
   .summary{font-weight:600;font-size:15px}
   .muted{color:var(--muted);font-size:13px}
   .tiny{font-size:12px;color:var(--muted)}
-
   .order-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px dashed #eee;margin-bottom:8px}
   .order-actions{display:flex;gap:8px}
-
   .status{padding:8px;border-radius:8px;font-weight:600}
   .status.new{background:#f1f5f9;color:#0f172a}
   .status.pending{background:#fff7ed;color:#92400e}
   .status.done{background:#ecfccb;color:#14532d}
-
   footer{margin-top:18px;padding:10px 0;color:var(--muted);font-size:13px;text-align:center}
-
-  /* switch */
   .switch{display:inline-flex;align-items:center;gap:8px}
   .checkbox{width:40px;height:22px;background:#e6e9ef;border-radius:999px;position:relative;cursor:pointer}
   .knob{width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:all .15s}
   .checkbox.on{background:var(--accent)}
   .checkbox.on .knob{left:20px}
-
-  /* service worker notice */
   .notice{background:#fffbe6;border:1px solid #ffe58f;padding:8px;border-radius:8px;color:#664d03;font-size:13px}
 </style>
 </head>
@@ -69,7 +54,6 @@
 
     <main>
       <section class="card grid-2" aria-labelledby="order">
-        <!-- Left: order form -->
         <div>
           <h2 id="order" style="margin-top:0">Place an order</h2>
 
@@ -127,7 +111,6 @@
           <div id="message" class="tiny" style="margin-top:8px;color:var(--muted)"></div>
         </div>
 
-        <!-- Right: cart & summary -->
         <aside>
           <h3 style="margin-top:0">Cart</h3>
           <div id="cartList" aria-live="polite" class="muted tiny">No items yet</div>
@@ -157,7 +140,7 @@
       <section class="card">
         <h3 style="margin-top:0">Shop info</h3>
         <div class="muted tiny">
-          If you are a shop owner: you can open this site on a laptop and click "Sync pending" to see orders saved locally on phones (or instruct customers to show the order ID). For production, add a small server endpoint to receive orders.
+          If you are a shop owner: open this site on a laptop and click "Sync pending" to see orders saved locally on phones (or ask customers to show the order ID). For production, add a server endpoint to receive orders.
         </div>
         <div style="margin-top:8px;" class="buttons">
           <button id="syncBtn" class="small ghost">Sync pending</button>
@@ -168,30 +151,21 @@
 
     <footer>
       <div class="muted tiny">© PrintMate prototype — works offline • Max upload <span id="maxsizeLabelFooter">5</span> MB</div>
-      <div class="tiny" style="margin-top:6px">Contact: +00 000 000 000 • Replace with local phone / payment details</div>
+      <div class="tiny" style="margin-top:6px">Contact: +91 9959814416</div>
     </footer>
   </div>
 
 <script>
-/* Lightweight app logic (no frameworks) */
-/* Configuration: change these for your market */
-const PRICE = {
-  bw_a4: 0.05,
-  color_a4: 0.12,
-  lamination: 1.5
-};
-const DELIVERY_FEE = 2.5; // default, you may replace with distance logic
-const TAX_RATE = 0.07; // 7%
+/* Configuration */
+const PRICE = { bw_a4: 0.05, color_a4: 0.12, lamination: 1.5 };
+const DELIVERY_FEE = 2.5;
+const TAX_RATE = 0.07;
 const MAX_UPLOAD_MB = 5;
+const SHOP_WHATSAPP = "919959814416"; // shop number (no +)
 
+/* Elements */
 document.getElementById('maxsizeLabel').textContent = MAX_UPLOAD_MB;
 document.getElementById('maxsizeLabelFooter').textContent = MAX_UPLOAD_MB;
-
-let cart = JSON.parse(localStorage.getItem('printmate_cart') || '[]');
-let orders = JSON.parse(localStorage.getItem('printmate_orders') || '[]');
-let lowData = false;
-let currency = localStorage.getItem('printmate_currency') || 'EUR';
-
 const els = {
   cartList: document.getElementById('cartList'),
   subtotal: document.getElementById('subtotal'),
@@ -204,14 +178,23 @@ const els = {
   currencySelect: document.getElementById('currency')
 };
 
+/* State */
+let cart = JSON.parse(localStorage.getItem('printmate_cart') || '[]');
+let orders = JSON.parse(localStorage.getItem('printmate_orders') || '[]');
+let lowData = false;
+let currency = localStorage.getItem('printmate_currency') || 'EUR';
 els.currencySelect.value = currency;
 
+/* Utils */
 function fmt(v){
-  // simple currency symbol mapping for display only (no exchange rates)
   const sym = { EUR:'€', INR:'₹', NGN:'₦', KES:'KSh', GHS:'GHS', USD:'US$' }[currency] || '';
   return sym + Number(v).toFixed(2);
 }
+function saveCart(){ localStorage.setItem('printmate_cart', JSON.stringify(cart)); }
+function saveOrders(){ localStorage.setItem('printmate_orders', JSON.stringify(orders)); }
+function showMessage(msg, timeout=3500){ els.message.textContent = msg; setTimeout(()=>{ if(els.message.textContent === msg) els.message.textContent = '' }, timeout); }
 
+/* Render */
 function calculate() {
   let subtotal = 0;
   cart.forEach(it => {
@@ -226,19 +209,13 @@ function calculate() {
   els.tax.textContent = fmt(tax);
   els.total.textContent = fmt(total);
 }
-
 function renderCart() {
-  if (cart.length === 0) {
-    els.cartList.textContent = 'No items yet';
-    return;
-  }
+  if (cart.length === 0) { els.cartList.textContent = 'No items yet'; return; }
   els.cartList.innerHTML = '';
   cart.forEach((it, idx) => {
-    const div = document.createElement('div');
-    div.className = 'order-item';
+    const div = document.createElement('div'); div.className = 'order-item';
     div.innerHTML = '<div><div style="font-weight:600">'+(it.service.replace('_',' '))+'</div><div class="tiny">'+it.pages+' pages • '+it.qty+' copies</div></div>';
-    const right = document.createElement('div');
-    right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
+    const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
     const price = document.createElement('div'); price.textContent = fmt(((PRICE[it.service]||0) * it.pages * it.qty)); price.className='tiny';
     const del = document.createElement('button'); del.className='small ghost'; del.textContent='Remove';
     del.onclick = ()=>{ cart.splice(idx,1); saveCart(); renderCart(); calculate(); };
@@ -246,11 +223,6 @@ function renderCart() {
     els.cartList.appendChild(div);
   });
 }
-
-function saveCart(){ localStorage.setItem('printmate_cart', JSON.stringify(cart)); }
-
-function saveOrders(){ localStorage.setItem('printmate_orders', JSON.stringify(orders)); }
-
 function renderOrders(){
   if (orders.length === 0) { els.savedOrders.textContent = 'No saved orders'; return; }
   els.savedOrders.innerHTML = '';
@@ -260,13 +232,13 @@ function renderOrders(){
     head.innerHTML = '<div style="font-weight:700">'+o.id+'</div><div class="tiny">'+new Date(o.created).toLocaleString()+'</div>';
     const st = document.createElement('div'); st.className = 'status ' + (o.synced? 'done':'pending'); st.style.marginTop='6px';
     st.textContent = o.synced ? 'Sent' : 'Pending upload';
-    d.appendChild(head);
-    d.appendChild(st);
+    d.appendChild(head); d.appendChild(st);
     d.style.padding='8px'; d.style.borderRadius='8px'; d.style.border='1px solid #efefef';
     els.savedOrders.appendChild(d);
   });
 }
 
+/* Add to cart */
 function addToCart() {
   const svc = document.getElementById('service').value;
   let pages = Number(document.getElementById('pages').value) || 1;
@@ -275,30 +247,41 @@ function addToCart() {
   if (fileInput.files && fileInput.files[0]) {
     const f = fileInput.files[0];
     const mb = f.size / (1024*1024);
-    if (mb > MAX_UPLOAD_MB) {
-      showMessage('File too large — choose a smaller file or use shop upload (max ' + MAX_UPLOAD_MB + ' MB).');
-      return;
-    }
+    if (mb > MAX_UPLOAD_MB) { showMessage('File too large — choose a smaller file or use shop upload (max ' + MAX_UPLOAD_MB + ' MB).'); return; }
   }
   const item = { service: svc, pages: pages, qty: qty, fileName: fileInput.files && fileInput.files[0] ? fileInput.files[0].name : null };
-  cart.push(item);
-  saveCart();
-  renderCart();
-  calculate();
-  showMessage('Added to cart');
+  cart.push(item); saveCart(); renderCart(); calculate(); showMessage('Added to cart');
 }
 
-function showMessage(msg, timeout=3500){
-  els.message.textContent = msg;
-  setTimeout(()=>{ if(els.message.textContent === msg) els.message.textContent = '' }, timeout);
+/* WhatsApp helper */
+function sendOrderToWhatsApp(order) {
+  // Build message (WhatsApp markdown-friendly)
+  let text = '🟢 *New PrintMate Order*\\n------------------------\\n';
+  text += `*Order ID:* ${order.id}\\n`;
+  text += `*Customer:* ${order.customer.name}\\n`;
+  text += `*Phone:* ${order.customer.phone}\\n`;
+  text += `*Address:* ${order.customer.addr}\\n\\n`;
+  text += `*Items:*\\n`;
+  order.items.forEach(it => {
+    text += `• ${it.service} — ${it.pages} pages × ${it.qty} copies\\n`;
+  });
+  text += `\\n*Total:* ${order.totalLocal}\\n`;
+  text += `*Currency:* ${order.currency}\\n`;
+  text += '------------------------\\n📩 Sent from PrintMate';
+  const encoded = encodeURIComponent(text);
+  const link = `https://wa.me/${SHOP_WHATSAPP}?text=${encoded}`;
+  // open new tab/window (user must press send)
+  window.open(link, '_blank');
 }
 
+/* Place order */
 function placeOrder(online=true) {
   if (cart.length === 0) { showMessage('Cart empty'); return; }
   const name = document.getElementById('name').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const addr = document.getElementById('addr').value.trim() || 'pickup';
   if (!name || !phone) { showMessage('Please enter name and phone'); return; }
+
   const order = {
     id: 'PM' + Date.now().toString(36),
     customer: { name, phone, addr },
@@ -309,124 +292,81 @@ function placeOrder(online=true) {
     method: online ? 'online' : 'cash_on_delivery',
     currency: currency
   };
-  // try to send immediately if online
-  if (navigator.onLine && online) {
-    // NOTE: no server in this prototype — simulate server by marking synced
-    order.synced = true;
-    showMessage('Order placed (simulated online). Order ID: ' + order.id);
-  } else {
-    showMessage('Order saved locally (offline or COD). Order ID: ' + order.id);
-  }
-  orders.push(order);
-  saveOrders();
-  cart = [];
-  saveCart();
-  renderCart();
-  renderOrders();
-  // clear form
+
+  // simulate online send if network available: mark synced (no server in prototype)
+  if (navigator.onLine && online) { order.synced = true; showMessage('Order placed (simulated online). ID: ' + order.id); }
+  else { showMessage('Order saved locally (offline or COD). ID: ' + order.id); }
+
+  orders.push(order); saveOrders();
+  cart = []; saveCart(); renderCart(); renderOrders();
+
+  // OPEN WHATSAPP with order details to shop number
+  sendOrderToWhatsApp(order);
+
+  // reset form
   document.getElementById('file').value = '';
   document.getElementById('pages').value = '1';
   document.getElementById('qty').value = '1';
   document.getElementById('addr').value = '';
 }
 
+/* Sync pending (simulated) */
 function syncPending(){
   if (!navigator.onLine) { showMessage('No network — connect to the internet to sync'); return; }
   let did = 0;
   orders.forEach(o=>{ if(!o.synced){ o.synced = true; did++; }});
-  if (did) {
-    saveOrders();
-    renderOrders();
-    showMessage('Synced ' + did + ' orders (simulated).');
-  } else showMessage('No pending orders to sync');
+  if (did) { saveOrders(); renderOrders(); showMessage('Synced ' + did + ' orders (simulated).'); }
+  else showMessage('No pending orders to sync');
 }
 
-/* events */
+/* Events */
 document.getElementById('addBtn').addEventListener('click', addToCart);
 document.getElementById('placeBtn').addEventListener('click', ()=>placeOrder(true));
 document.getElementById('codBtn').addEventListener('click', ()=>placeOrder(false));
 document.getElementById('syncBtn').addEventListener('click', syncPending);
-document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('Clear all local orders?')){ orders=[]; saveOrders(); renderOrders(); showMessage('Cleared'); } });
-
+document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('Clear all local orders?')){ orders=[]; saveOrders(); renderOrders(); showMessage('Cleared'); }});
 document.getElementById('currency').addEventListener('change', (e)=>{ currency=e.target.value; localStorage.setItem('printmate_currency', currency); calculate(); renderCart(); renderOrders(); });
+els.lowDataSwitch.addEventListener('click', ()=>{ lowData = !lowData; els.lowDataSwitch.classList.toggle('on', lowData); els.lowDataSwitch.setAttribute('aria-checked', String(lowData)); localStorage.setItem('printmate_lowdata', lowData ? '1' : '0'); showMessage('Low-data ' + (lowData ? 'enabled' : 'disabled')); });
 
-els.lowDataSwitch.addEventListener('click', ()=>{
-  lowData = !lowData;
-  els.lowDataSwitch.classList.toggle('on', lowData);
-  els.lowDataSwitch.setAttribute('aria-checked', String(lowData));
-  localStorage.setItem('printmate_lowdata', lowData ? '1' : '0');
-  showMessage('Low-data ' + (lowData ? 'enabled' : 'disabled'));
-});
-
-/* initial render */
+/* Init */
 renderCart(); calculate(); renderOrders();
 if (localStorage.getItem('printmate_lowdata') === '1') { els.lowDataSwitch.classList.add('on'); els.lowDataSwitch.setAttribute('aria-checked','true'); lowData = true; }
 
-/* Service Worker: offline caching for the site shell */
+/* Service Worker registration + inline blob fallback for static hosts */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw-printmate.js').then(reg=>{
-    console.log('SW registered', reg.scope);
-  }).catch(err=>{
-    console.warn('SW failed', err);
-  });
+  // attempt to register separate sw file; if not present, blob fallback will register below
+  fetch('sw-printmate.js').then(r=>{
+    if (r.ok) {
+      navigator.serviceWorker.register('sw-printmate.js').catch(()=>{/* ignore */});
+    } else {
+      // blob fallback (created below)
+    }
+  }).catch(()=>{/* ignore */});
 }
 
-/* small helper to auto-sync when online */
-window.addEventListener('online', ()=>{ showMessage('Network available — you can sync pending orders.'); });
-
-</script>
-
-<!-- Service worker file delivered inline via blob approach for static hosting that doesn't allow multiple files:
-     We create it dynamically if the host blocks separate resource. But many static hosts allow a separate file.
-     For GitHub Pages you can also create sw-printmate.js in repo root with same content as below.
--->
-<script>
+/* Inline creation of service worker file if not available on host */
 (function(){
-  // create service worker file content
   const swContent = `
 const CACHE_NAME = 'printmate-v1';
-const ASSETS = [
-  '/',
-  location.pathname,
-  // keep this list small; we cache the shell
-];
-
+const ASSETS = [ '/', location.pathname ];
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(()=>self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
 });
-
-self.addEventListener('activate', event => {
-  event.waitUntil(clients.claim());
-});
-
+self.addEventListener('activate', event => { event.waitUntil(clients.claim()); });
 self.addEventListener('fetch', event => {
   const req = event.request;
-  // try cache first for app shell, otherwise network
   if (req.method !== 'GET') return;
-  event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) return cached;
-      return fetch(req).then(resp => {
-        // optionally cache new requests (avoid caching large uploads)
-        return resp;
-      }).catch(()=> caches.match('/')); // fallback
-    })
-  );
+  event.respondWith(caches.match(req).then(cached => cached || fetch(req).catch(()=>caches.match('/'))));
 });
-  `.trim();
-
-  // try to register the service worker file via blob URL if separate file not present
+`.trim();
   if ('serviceWorker' in navigator) {
     fetch('sw-printmate.js').then(r=>{
-      if (r.ok) {
-        // separate file exists, nothing to do
-      } else {
-        // create blob and register
+      if (!r.ok) {
         const blob = new Blob([swContent], {type:'application/javascript'});
         const url = URL.createObjectURL(blob);
         navigator.serviceWorker.register(url).catch(()=>{/* ignore */});
+      } else {
+        // sw exists, nothing
       }
     }).catch(()=> {
       const blob = new Blob([swContent], {type:'application/javascript'});
@@ -435,7 +375,9 @@ self.addEventListener('fetch', event => {
     });
   }
 })();
-</script>
 
+/* auto-sync hint when network returns */
+window.addEventListener('online', ()=>{ showMessage('Network available — you can sync pending orders.'); });
+</script>
 </body>
 </html>
