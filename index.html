@@ -1,731 +1,396 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PrintMate — Doorstep Xerox Delivery (Startup Theme)</title>
-<style>
-  /* --- Theme variables --- */
-  :root{
-    --bg-1: #021124;    /* deep navy */
-    --bg-2: #062b59;    /* blue */
-    --card: #0f1724;    /* panel (dark theme default) */
-    --glass: rgba(255,255,255,0.04);
-    --accent: #0b84ff;  /* primary blue */
-    --accent-2: #ffd24a; /* delivery yellow */
-    --muted: #9aa8c3;
-    --text: #e6eefc;
-    --success: #16a34a;
-    --danger: #ef4444;
-    --shadow: 0 10px 30px rgba(2,6,23,0.45);
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PrintMate — Frontend Prototype</title>
 
-  /* Light mode overrides */
-  body.light {
-    --bg-1: #eaf4ff;
-    --bg-2: #f5fbff;
-    --card: #ffffff;
-    --glass: rgba(3,19,53,0.04);
-    --accent: #0066cc;
-    --accent-2: #ffb81c;
-    --muted: #6b7280;
-    --text: #0b1220;
-    --shadow: 0 8px 24px rgba(6,30,63,0.08);
-  }
+  <!-- Tailwind CDN for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-  body{
-    color:var(--text);
-    background: radial-gradient(1200px 600px at 10% 10%, rgba(11,132,255,0.10), transparent),
-                linear-gradient(90deg,var(--bg-1),var(--bg-2));
-    -webkit-font-smoothing:antialiased;
-    transition:background 600ms ease, color 400ms ease;
-  }
+  <!-- React + ReactDOM (UMD builds) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-  /* subtle animated gradient overlay */
-  .bg-anim{
-    position:fixed; inset:0; z-index:-1;
-    background:linear-gradient(120deg, rgba(11,132,255,0.06), rgba(13,45,92,0.06) 30%, rgba(255,210,74,0.03));
-    animation:floatBG 18s linear infinite;
-    pointer-events:none;
-    mix-blend-mode:overlay;
-  }
-  @keyframes floatBG{
-    0%{transform:translateY(0) rotate(0deg)}
-    50%{transform:translateY(-20px) rotate(2deg)}
-    100%{transform:translateY(0) rotate(0deg)}
-  }
+  <!-- Babel for inline JSX (OK for demo / prototypes) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  .container{max-width:1100px;margin:28px auto;padding:22px;}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
-  .brand{display:flex;align-items:center;gap:12px}
-  .logo{
-    width:56px;height:56px;border-radius:12px;
-    background:linear-gradient(135deg,var(--accent),#024b8a);
-    display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;
-    box-shadow:0 6px 20px rgba(2,6,23,0.25);
-  }
-  .brand h1{margin:0;font-size:18px}
-  .brand p{margin:0;font-size:13px;color:var(--muted)}
-
-  .controls{display:flex;gap:8px;align-items:center}
-  .btn{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:10px 14px;border-radius:12px;background:linear-gradient(180deg,var(--accent),#005cb8);
-    color:white;font-weight:700;border:0;cursor:pointer;box-shadow:0 8px 24px rgba(11,132,255,0.12);
-    transition:transform .12s ease, box-shadow .12s ease;
-  }
-  .btn:hover{transform:translateY(-3px); box-shadow:0 18px 34px rgba(11,132,255,0.16)}
-  .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.06);box-shadow:none}
-  .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(11,132,255,0.10); box-shadow:none}
-
-  .card{background:var(--card);padding:18px;border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px}
-  .grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
-  @media (max-width:880px){.grid{grid-template-columns:1fr;padding-bottom:12px}}
-  h2{margin:0;font-size:18px}
-  p.lead{margin:6px 0 0;color:var(--muted)}
-  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
-  input, select, textarea{
-    width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);
-    background:transparent;color:var(--text);font-size:14px;
-  }
-  body.light input, body.light select{border:1px solid rgba(6,30,63,0.06); color:var(--text)}
-
-  .preview{border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:10px;background:var(--glass);font-size:13px;color:var(--muted)}
-  .muted{color:var(--muted);font-size:13px}
-  .small{font-size:13px;color:var(--muted)}
-  .list{display:flex;flex-direction:column;gap:10px}
-  .item{padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
-  .order-box{display:flex;flex-direction:column;gap:8px}
-
-  /* recent orders small list */
-  .recent .order-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.03);gap:8px}
-  .muted-small{font-size:12px;color:var(--muted)}
-
-  /* login modal */
-  .modal-backdrop{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.5), rgba(2,6,23,0.45));display:flex;align-items:center;justify-content:center;z-index:80}
-  .login-card{width:380px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:22px;border-radius:14px;box-shadow:0 20px 60px rgba(2,6,23,0.6)}
-  .login-card h3{margin:0 0 6px 0}
-  .danger{color:var(--danger);font-weight:700}
-  .success{color:var(--success);font-weight:700}
-
-  /* tracker / map */
-  #mapArea{margin-top:12px;height:120px;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(90deg, rgba(11,132,255,0.06), rgba(2,20,40,0.02));border:1px solid rgba(255,255,255,0.04)}
-  .rider{font-size:36px;display:inline-block;transform:translateX(0);transition:transform 600ms linear}
-  .tracker-modal{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:none;align-items:center;justify-content:center;z-index:90}
-  .tracker-card{width:780px;max-width:96%;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 30px 80px rgba(2,6,23,0.6)}
-  .progress{width:100%;height:14px;border-radius:100px;background:linear-gradient(90deg,#e9f6ff, #dfefff); border:1px solid rgba(255,255,255,0.04); overflow:hidden}
-  .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#064a9b);border-radius:100px;transition:width 350ms linear}
-  .tracker-actions{display:flex;gap:8px;align-items:center;margin-top:12px}
-
-  /* QR canvas */
-  .qr-canvas{width:130px;height:130px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg,#fff, #f7fbff);display:flex;align-items:center;justify-content:center}
-
-  /* dark/light toggle */
-  .toggle{display:inline-flex;align-items:center;gap:10px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);cursor:pointer;font-size:13px}
-
-  /* icons area */
-  .icon{font-size:18px;margin-right:6px}
-
-  /* small responsive */
-  @media (max-width:880px){
-    .controls{flex-direction:row-reverse}
-    .btn{padding:8px 12px}
-  }
-
-</style>
+  <style>
+    /* small custom tweak */
+    body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  </style>
 </head>
-<body>
-  <div class="bg-anim" aria-hidden="true"></div>
+<body class="bg-gray-50 text-gray-900">
 
-  <div class="container" id="app" aria-live="polite">
-    <header>
-      <div class="brand">
-        <div class="logo">PM</div>
-        <div>
-          <h1>PrintMate Express</h1>
-          <p class="small muted">Doorstep Xerox & print delivery — Startup demo</p>
-        </div>
-      </div>
+  <div id="root" class="min-h-screen"></div>
 
-      <div class="controls">
-        <div class="toggle" id="themeToggle" title="Toggle light / dark">
-          <span class="icon">🌓</span><small class="muted-small">Theme</small>
-        </div>
-        <div id="userGreeting" class="muted-small" style="min-width:120px"></div>
-        <button id="btnLogout" class="btn ghost" style="display:none">Log out</button>
-      </div>
-    </header>
+  <!-- App code (JSX compiled by Babel). For production replace with a built bundle. -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-    <div class="card grid">
-      <main id="mainContent">
-        <!-- Home -->
-        <section id="homePage">
-          <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-            <div style="flex:1">
-              <h2 style="margin-bottom:4px">Printing made simple — Get it delivered</h2>
-              <p class="muted" style="max-width:60%">Upload files, choose options and receive prints at your door in around 30 minutes (demo).</p>
-              <div style="margin-top:12px;display:flex;gap:8px">
-                <button class="btn" onclick="goTo('orderPage')">🖨️ Order Now</button>
-                <button class="btn secondary" onclick="goTo('pricingPage')">📜 Pricing</button>
+    function NavButton({ children, active, onClick }) {
+      return (
+        <button
+          onClick={onClick}
+          className={\`px-3 py-2 rounded-md text-sm \${active ? "bg-indigo-50 text-indigo-600" : "text-gray-600 hover:bg-gray-100"}\`}
+        >
+          {children}
+        </button>
+      );
+    }
+
+    function Header({ onNavigate, route }) {
+      return (
+        <header className="bg-white shadow-sm">
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">PM</div>
+              <div>
+                <h1 className="text-lg font-semibold">PrintMate</h1>
+                <p className="text-xs text-gray-500">Fast prints — realtime tracking</p>
               </div>
             </div>
-            <div style="width:220px;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-              <div style="background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:12px;text-align:right">
-                <div style="font-weight:800;font-size:20px">Fast • Local • Safe</div>
-                <div class="muted-small">Startup demo v1.3</div>
-              </div>
-              <div style="display:flex;gap:8px">
-                <div class="item" style="min-width:100px;text-align:center">⚡ Same-day</div>
-                <div class="item" style="min-width:100px;text-align:center">🔒 Secure</div>
-              </div>
+
+            <nav className="flex items-center gap-4">
+              <NavButton active={route === "home"} onClick={() => onNavigate("home")}>Home</NavButton>
+              <NavButton active={route === "upload"} onClick={() => onNavigate("upload")}>Order</NavButton>
+              <NavButton active={route === "shop"} onClick={() => onNavigate("shop")}>Shop</NavButton>
+              <NavButton active={route === "driver"} onClick={() => onNavigate("driver")}>Driver</NavButton>
+              <button onClick={() => onNavigate("tracker")} className="ml-2 px-4 py-2 rounded-md border bg-white text-sm shadow-sm">Track Order</button>
+            </nav>
+          </div>
+        </header>
+      );
+    }
+
+    function Feature({ title, children }) {
+      return (
+        <div className="flex gap-3 items-start bg-gray-50 p-3 rounded">
+          <div className="w-10 h-10 rounded-md bg-white shadow flex items-center justify-center">📄</div>
+          <div>
+            <div className="font-semibold text-sm">{title}</div>
+            <div className="text-xs text-gray-500">{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function QuickOrderCard() {
+      return (
+        <div className="border rounded p-3">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium">A4 - Black & White</div>
+            <div className="text-sm font-semibold">€0.05 / page</div>
+          </div>
+          <div className="text-xs text-gray-500 mb-3">Duplex available • 100 pages max</div>
+          <div className="flex gap-2">
+            <button className="px-3 py-2 rounded bg-indigo-50 text-indigo-600 text-sm">Upload</button>
+            <button className="px-3 py-2 rounded border text-sm">Customize</button>
+          </div>
+        </div>
+      );
+    }
+
+    function Home({ onStart }) {
+      return (
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 className="text-3xl font-extrabold mb-3">Print & Xerox — delivered fast</h2>
+            <p className="text-gray-600 mb-6">Upload your documents, choose options (color/BW, duplex, finishing), pay and track in real-time. Pickup or delivery — your choice.</p>
+            <div className="flex gap-3">
+              <button onClick={onStart} className="px-5 py-3 rounded-lg bg-indigo-600 text-white shadow">Start an order</button>
+              <button className="px-5 py-3 rounded-lg border">See pricing</button>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <Feature title="Fast Turnaround">Printing from 15 minutes</Feature>
+              <Feature title="Real-time Tracking">Live driver and status updates</Feature>
+              <Feature title="Multiple Services">Lamination, binding, passport photos</Feature>
+              <Feature title="Secure Payments">Stripe & wallet ready</Feature>
             </div>
           </div>
 
-          <div class="card" style="margin-top:14px">
-            <h3 style="margin-top:0">How it works</h3>
-            <div class="list" style="margin-top:10px">
-              <div class="item">1. Upload file → select paper, color & copies.</div>
-              <div class="item">2. Place order & pay (demo) → we assign a rider.</div>
-              <div class="item">3. Use QR tracker to follow delivery inside this page.</div>
-            </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h3 className="font-semibold mb-3">Quick Order Preview</h3>
+            <QuickOrderCard />
           </div>
         </section>
+      );
+    }
 
-        <!-- Order -->
-        <section id="orderPage" class="hidden">
-          <div class="card">
-            <h2 style="margin-top:0">Place an Order</h2>
-            <p class="muted">Demo only — files stay local in your browser.</p>
+    function UploadStep({ onAdd, onNext, cart, onBack }) {
+      const [service, setService] = useState("bw_a4");
+      const [qty, setQty] = useState(1);
+      const [fileName, setFileName] = useState(null);
 
-            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px">
-              <div style="flex:1;min-width:280px">
-                <label>Choose file to print</label>
-                <input id="fileInput" type="file" accept=".pdf,.doc,.docx,image/*" />
-                <div id="filePreview" class="preview" style="margin-top:10px">No file selected</div>
-
-                <div style="display:flex;gap:8px;margin-top:12px">
-                  <div style="flex:1">
-                    <label>Format</label>
-                    <select id="format">
-                      <option value="bw">Black & White</option>
-                      <option value="color">Color</option>
-                    </select>
-                  </div>
-                  <div style="width:120px">
-                    <label>Copies</label>
-                    <input id="copies" type="number" value="1" min="1" />
-                  </div>
-                </div>
-
-                <div style="margin-top:12px">
-                  <label>Paper type</label>
-                  <select id="paper">
-                    <option>Standard (A4)</option>
-                    <option>Premium (A4)</option>
-                    <option>Letter</option>
-                  </select>
-                </div>
-
-                <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-                  <button class="btn" id="placeOrderBtn">Place Order</button>
-                  <button class="btn secondary" onclick="simulateClearOrder()">Clear</button>
-                </div>
-
-                <div id="orderStatus" style="margin-top:12px" class="muted"></div>
-
-                <!-- map + rider -->
-                <div id="mapArea" class="hidden" aria-hidden="true">
-                  <div style="font-size:20px">🏠</div>
-                  <div id="riderEl" class="rider">🛵</div>
-                  <div style="font-size:20px">📍</div>
-                </div>
-
-                <!-- QR and tracker area -->
-                <div id="qrArea" style="display:none;margin-top:12px;align-items:center">
-                  <div style="display:flex;gap:12px;align-items:center">
-                    <div class="qr-canvas" id="qrCanvas" title="Tracking QR code"></div>
-                    <div style="flex:1">
-                      <div><strong>Tracking code:</strong> <span id="trackCode" class="muted-small">—</span></div>
-                      <div class="muted-small">Scan or click "Open tracker" to follow delivery in-page.</div>
-                      <div style="margin-top:8px;display:flex;gap:8px">
-                        <button class="btn" id="openTrackerBtn">Open tracker</button>
-                        <button class="btn secondary" id="copyTrackBtn">Copy link</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <aside style="width:340px;min-width:220px">
-                <div class="card">
-                  <h3 style="margin-top:0">Order summary</h3>
-                  <div class="order-box" style="margin-top:10px">
-                    <div><strong>File:</strong> <span id="s_file">—</span></div>
-                    <div><strong>Copies:</strong> <span id="s_copies">1</span></div>
-                    <div><strong>Format:</strong> <span id="s_format">B/W</span></div>
-                    <div><strong>Paper:</strong> <span id="s_paper">Standard (A4)</span></div>
-                    <div><strong>Total:</strong> <span id="s_cost">€0.00</span></div>
-                    <div><strong>ETA:</strong> <span id="s_eta">—</span></div>
-                  </div>
-                </div>
-
-                <div class="card" style="margin-top:12px">
-                  <h3 style="margin-top:0">Payment (demo)</h3>
-                  <p class="muted-small">Simulated payment — no real charges.</p>
-                  <button class="btn" id="payBtn">Pay & Start Delivery</button>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </section>
-
-        <!-- Pricing -->
-        <section id="pricingPage" class="hidden">
-          <div class="card">
-            <h2>Pricing</h2>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
-              <div style="flex:1;min-width:200px" class="card">
-                <h3 style="margin:0">Single Print</h3>
-                <div class="muted-small">B/W: €0.10 / page</div>
-                <div class="muted-small">Color: €0.50 / page</div>
-              </div>
-              <div style="flex:1;min-width:200px" class="card">
-                <h3 style="margin:0">Student Plan</h3>
-                <div class="muted-small">20 pages/month — €3.50</div>
-              </div>
-              <div style="flex:1;min-width:200px" class="card">
-                <h3 style="margin:0">Office Bundle</h3>
-                <div class="muted-small">Custom pricing—contact us</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Partners -->
-        <section id="partnersPage" class="hidden">
-          <div class="card">
-            <h2>Key partners</h2>
-            <div class="list" style="margin-top:10px">
-              <div class="item">Local print shops • Delivery couriers • Payment partners</div>
-              <div class="item">Schools & offices — subscription partners</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- About -->
-        <section id="aboutPage" class="hidden">
-          <div class="card">
-            <h2>About PrintMate</h2>
-            <p class="muted-small">Demo startup showcasing client-side ordering, tracking, and UX for a doorstep printing service.</p>
-            <p class="muted-small">Contact: hello@printmate.example</p>
-          </div>
-        </section>
-      </main>
-
-      <!-- Right column -->
-      <aside>
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <strong>Menu</strong>
-              <div class="muted-small">Click to navigate</div>
-            </div>
-            <div class="muted-small">v1.3 demo</div>
-          </div>
-
-          <nav style="margin-top:12px;display:flex;flex-direction:column;gap:8px" id="mainNav" aria-label="Main navigation">
-            <button class="btn ghost active" onclick="goTo('homePage')">Home</button>
-            <button class="btn ghost" onclick="goTo('orderPage')">Order</button>
-            <button class="btn ghost" onclick="goTo('pricingPage')">Pricing</button>
-            <button class="btn ghost" onclick="goTo('partnersPage')">Partners</button>
-            <button class="btn ghost" onclick="goTo('aboutPage')">About</button>
-          </nav>
-        </div>
-
-        <div class="card recent" style="margin-top:12px">
-          <h4 style="margin-top:0">Recent demo orders</h4>
-          <div id="recentOrders" style="margin-top:8px">
-            <div class="muted-small">No orders yet</div>
-          </div>
-        </div>
-      </aside>
-    </div>
-
-    <footer style="text-align:center;margin-top:18px;color:var(--muted)" class="muted-small">PrintMate demo • For production add secure backend & payment gateway</footer>
-  </div>
-
-  <!-- Login modal -->
-  <div id="loginModal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="login-card">
-      <h3>Sign in to PrintMate</h3>
-      <div class="muted-small" style="margin-bottom:12px">Demo credentials: <strong>sasi</strong> / <strong>sasi</strong></div>
-      <div id="loginError" class="danger" style="display:none;margin-bottom:8px"></div>
-      <label>Username</label>
-      <input id="loginUser" type="text" value="sasi" />
-      <label style="margin-top:8px">Password</label>
-      <input id="loginPass" type="password" value="sasi" />
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-        <button id="loginBtn" class="btn">Sign in</button>
-        <div class="muted-small">Single demo account</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tracker modal -->
-  <div id="trackerModal" class="tracker-modal" role="dialog" aria-modal="true">
-    <div class="tracker-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-        <div>
-          <div style="font-weight:800" id="trkTitle">Delivery tracker</div>
-          <div class="muted-small" id="trkSubtitle">Tracking code: <span id="trkCodeText">—</span></div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn secondary" id="closeTrackerBtn">Close</button>
-        </div>
-      </div>
-
-      <div style="margin-top:14px">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div style="width:140px">
-            <div class="qr-canvas" id="trackerQr"></div>
-            <div class="muted-small" style="margin-top:8px;text-align:center">Scan to open tracker</div>
-          </div>
-          <div style="flex:1">
-            <div style="display:flex;gap:12px;align-items:center">
-              <div style="width:80px;text-align:center;font-size:28px">🛵</div>
-              <div style="flex:1">
-                <div style="display:flex;justify-content:space-between">
-                  <div><strong id="trkStatus">Preparing</strong></div>
-                  <div class="muted-small" id="trkEta">ETA: —</div>
-                </div>
-                <div style="margin-top:8px" class="progress"><i id="progressBar"></i></div>
-                <div class="tracker-actions">
-                  <button class="btn" id="pauseBtn">Pause</button>
-                  <button class="btn secondary" id="resetBtn">Reset</button>
-                </div>
-              </div>
-            </div>
-
-            <div id="trackerMap" style="margin-top:14px;height:120px;border-radius:10px;background:linear-gradient(90deg,#eaf6ff,#f8fbff);display:flex;align-items:center;justify-content:space-between;padding:12px">
-              <div style="font-size:20px">🏠</div>
-              <div id="trackerRider" style="font-size:36px;transform:translateX(0)">🛵</div>
-              <div style="font-size:20px">📍</div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-<script>
-/* -----------------------
-   PrintMate demo script
-   ----------------------- */
-
-const AUTH_USER='sasi', AUTH_PASS='sasi';
-const storageKey='printmate_demo_session';
-const ordersKey='printmate_demo_orders_v1';
-
-function $(id){return document.getElementById(id);}
-
-/* --------- THEME --------- */
-const themeToggle = $('themeToggle');
-function applySavedTheme(){
-  const saved = localStorage.getItem('printmate_theme') || 'dark';
-  if(saved === 'light') document.body.classList.add('light'); else document.body.classList.remove('light');
-}
-applySavedTheme();
-themeToggle.addEventListener('click', ()=>{
-  document.body.classList.toggle('light');
-  localStorage.setItem('printmate_theme', document.body.classList.contains('light') ? 'light' : 'dark');
-});
-
-/* --------- AUTH --------- */
-function showLogin(show=true){ $('loginModal').style.display = show ? 'flex' : 'none'; }
-function setLoggedIn(user){
-  localStorage.setItem(storageKey, JSON.stringify({user,ts:Date.now()}));
-  $('userGreeting').textContent = 'Hi, ' + user;
-  $('btnLogout').style.display='inline-flex';
-  showLogin(false);
-}
-function clearSession(){
-  localStorage.removeItem(storageKey);
-  $('userGreeting').textContent = '';
-  $('btnLogout').style.display='none';
-  showLogin(true);
-}
-function checkAuth(){
-  const s=localStorage.getItem(storageKey);
-  if(!s){ showLogin(true); return false; }
-  try{
-    const obj=JSON.parse(s);
-    if(obj.user){ $('userGreeting').textContent='Hi, '+obj.user; $('btnLogout').style.display='inline-flex'; showLogin(false); return true; }
-  }catch(e){}
-  showLogin(true); return false;
-}
-$('loginBtn').addEventListener('click', ()=>{
-  const u=$('loginUser').value.trim(), p=$('loginPass').value;
-  if(u===AUTH_USER && p===AUTH_PASS) setLoggedIn(u);
-  else { $('loginError').style.display='block'; $('loginError').textContent='Wrong username or password (demo)'; }
-});
-$('btnLogout').addEventListener('click', ()=>{
-  clearSession();
-  goTo('homePage');
-});
-
-/* --------- NAV --------- */
-function goTo(id){
-  const pages=['homePage','orderPage','pricingPage','partnersPage','aboutPage'];
-  pages.forEach(p => $(p).classList.add('hidden'));
-  $(id).classList.remove('hidden');
-  // active nav buttons
-  Array.from(document.querySelectorAll('#mainNav button')).forEach(b=>b.classList.remove('active'));
-  const btn = Array.from(document.querySelectorAll('#mainNav button')).find(b => b.textContent.toLowerCase().includes(id.replace('Page','')));
-  if(btn) btn.classList.add('active');
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-/* --------- ORDER LOGIC --------- */
-let currentFile = null;
-let currentOrder = null; // {file, copies, format, paper, cost, eta, track}
-
-$('fileInput').addEventListener('change', e=>{
-  const f = e.target.files && e.target.files[0];
-  if(!f){ $('filePreview').textContent='No file selected'; currentFile=null; updateSummary(); return; }
-  currentFile = f;
-  $('filePreview').textContent = f.name + ' • ' + Math.round(f.size/1024) + ' KB';
-  updateSummary();
-});
-['format','paper','copies'].forEach(id => $(id).addEventListener('input', updateSummary));
-
-function calcCost(fmt, copies){
-  const base = fmt === 'color' ? 0.5 : 0.10;
-  return base * copies;
-}
-function updateSummary(){
-  const fmt = $('format').value;
-  const copies = Math.max(1, parseInt($('copies').value)||1);
-  const paper = $('paper').value;
-  const cost = calcCost(fmt, copies);
-  $('s_file').textContent = currentFile ? currentFile.name : '—';
-  $('s_copies').textContent = copies;
-  $('s_format').textContent = fmt === 'color' ? 'Color' : 'B/W';
-  $('s_paper').textContent = paper;
-  $('s_cost').textContent = '€' + cost.toFixed(2);
-  $('s_eta').textContent = '~' + (20 + Math.round(Math.random()*20)) + ' min';
-}
-
-/* create a short deterministic tracking code from a string (time + random) */
-function makeTrackingCode(seed){
-  const t = Date.now().toString(36).slice(-6);
-  const rnd = Math.random().toString(36).slice(2,8);
-  return (seed ? seed.split(' ').map(s=>s[0]||'').join('') : 'PM') + '-' + t + '-' + rnd.toUpperCase();
-}
-
-/* draw a simple QR-like pattern on a canvas (offline placeholder) */
-function drawFakeQR(el, text){
-  // el: DOM element; text: string to use as seed
-  const size = 120;
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,size,size);
-  // simple hash to bytes
-  let h=0;
-  for(let i=0;i<text.length;i++) h = (h*31 + text.charCodeAt(i)) >>> 0;
-  // draw blocks 12x12 grid
-  const grid = 12;
-  const cell = Math.floor(size/grid);
-  for(let y=0;y<grid;y++){
-    for(let x=0;x<grid;x++){
-      // deterministic pseudo-random
-      h = (h * 1664525 + 1013904223) >>> 0;
-      const bit = (h >>> ((x+y)%24)) & 1;
-      if((x<2 && y<2) || (x>grid-3 && y<2) || (x<2 && y>grid-3)) {
-        // stylized finder squares
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x*cell, y*cell, cell, cell);
-      } else if(bit) {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x*cell, y*cell, cell-1, cell-1);
+      function handleAdd() {
+        const item = {
+          id: "it_" + Date.now(),
+          service,
+          qty,
+          file: fileName || "example.pdf",
+          pricePerPage: service === "color_a4" ? 0.12 : 0.05,
+          pages: 3,
+        };
+        onAdd(item);
       }
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bg-white rounded-lg p-6 shadow">
+            <h3 className="text-lg font-semibold mb-4">Upload documents</h3>
+            <div className="border-dashed border-2 border-gray-200 p-6 rounded text-center">
+              <input id="file" type="file" accept=".pdf,.docx,.jpg,.png"
+                onChange={(e) => setFileName(e.target.files?.[0]?.name)}
+                className="mb-3" />
+              <div className="text-sm text-gray-500">Drop files here or click to browse</div>
+              <div className="mt-3 text-xs text-gray-600">Selected: {fileName || "—"}</div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <label className="block">
+                <div className="text-xs text-gray-600 mb-1">Service</div>
+                <select value={service} onChange={(e) => setService(e.target.value)} className="w-full border rounded p-2">
+                  <option value="bw_a4">A4 • Black & White</option>
+                  <option value="color_a4">A4 • Color</option>
+                  <option value="bw_a3">A3 • Black & White</option>
+                  <option value="lamination">Lamination</option>
+                </select>
+              </label>
+
+              <label>
+                <div className="text-xs text-gray-600 mb-1">Quantity</div>
+                <input type="number" value={qty} min={1} onChange={(e) => setQty(parseInt(e.target.value || "1"))} className="w-full border rounded p-2"/>
+              </label>
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button onClick={handleAdd} className="px-4 py-2 rounded bg-indigo-600 text-white">Add to cart</button>
+              <button onClick={onNext} className="px-4 py-2 rounded border">Go to pricing</button>
+              <button onClick={onBack} className="px-4 py-2 rounded border text-sm">Back</button>
+            </div>
+          </div>
+
+          <aside className="bg-white rounded-lg p-4 shadow">
+            <h4 className="font-semibold mb-3">Cart</h4>
+            <div className="space-y-3">
+              {cart.length === 0 && <div className="text-sm text-gray-500">No items yet</div>}
+              {cart.map((c) => (
+                <div key={c.id} className="flex justify-between items-center">
+                  <div>
+                    <div className="text-sm font-medium">{c.service}</div>
+                    <div className="text-xs text-gray-500">{c.pages} pages • {c.file}</div>
+                  </div>
+                  <div className="text-sm">€{(c.pages * c.qty * c.pricePerPage).toFixed(2)}</div>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      );
     }
-  }
-  // clear container and append canvas
-  el.innerHTML = ''; el.appendChild(canvas);
-}
 
-/* place order (local demo) */
-$('placeOrderBtn').addEventListener('click', ()=>{
-  if(!currentFile){ $('orderStatus').innerHTML = '<span class="danger">Choose a file first</span>'; return; }
-  const copies = Math.max(1, parseInt($('copies').value)||1);
-  const fmt = $('format').value;
-  const paper = $('paper').value;
-  const cost = calcCost(fmt, copies);
-  const eta = 20 + Math.round(Math.random()*25);
-  const track = makeTrackingCode(currentFile.name || 'PM');
-  currentOrder = { file: currentFile.name, copies, fmt, paper, cost, eta, track, ts:Date.now() };
-  $('orderStatus').innerHTML = '<span class="success">Order placed — tracking code: <strong>' + track + '</strong></span>';
-  // show QR + track code area
-  $('qrArea').style.display = 'block';
-  $('trackCode').textContent = track;
-  drawFakeQR($('qrCanvas'), track);
-  saveOrder(currentOrder);
-  updateSummary();
-  addRecentList();
-});
+    function Pricing({ cart, onCheckout, onBack }) {
+      const subtotal = cart.reduce((s, it) => s + it.pages * it.qty * it.pricePerPage, 0);
+      const delivery = subtotal > 20 ? 0 : 3.5;
+      const tax = subtotal * 0.07;
+      const total = subtotal + delivery + tax;
 
-/* simulate payment and start delivery (enables tracker) */
-$('payBtn').addEventListener('click', ()=>{
-  if(!currentOrder){ $('orderStatus').innerHTML = '<span class="danger">Place an order first</span>'; return; }
-  $('orderStatus').innerHTML = '<span class="success">Payment received — rider assigned</span>';
-  $('mapArea').classList.remove('hidden');
-  // enable QR tracker open
-  $('openTrackerBtn').disabled = false;
-});
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bg-white rounded-lg p-6 shadow">
+            <h3 className="text-lg font-semibold mb-4">Pricing & options</h3>
+            <div className="space-y-4">
+              {cart.map((it) => (
+                <div key={it.id} className="flex justify-between items-center border p-3 rounded">
+                  <div>
+                    <div className="font-medium">{it.service}</div>
+                    <div className="text-xs text-gray-500">{it.pages} pages • {it.qty} copies</div>
+                  </div>
+                  <div className="text-right">
+                    <div>€{(it.pages * it.qty * it.pricePerPage).toFixed(2)}</div>
+                    <div className="text-xs text-gray-400">per item</div>
+                  </div>
+                </div>
+              ))}
 
-/* copy tracking link */
-$('copyTrackBtn').addEventListener('click', ()=>{
-  if(!currentOrder) return;
-  const fakeUrl = location.href.split('#')[0] + '?track=' + encodeURIComponent(currentOrder.track);
-  navigator.clipboard && navigator.clipboard.writeText(fakeUrl).then(()=> {
-    alert('Tracking link copied to clipboard:\n' + fakeUrl);
-  }).catch(()=> alert('Copy failed — here is the code: ' + currentOrder.track));
-});
+              <div className="mt-4">
+                <label className="flex items-center gap-3">
+                  <input type="checkbox" /> Use express printing (additional fee)
+                </label>
+              </div>
+            </div>
 
-/* open in-page tracker */
-$('openTrackerBtn').addEventListener('click', ()=>{
-  if(!currentOrder) { alert('Place an order first'); return; }
-  openTracker(currentOrder.track, currentOrder.eta);
-});
+            <div className="mt-6 flex gap-3">
+              <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
+              <button onClick={onCheckout} className="px-4 py-2 rounded bg-indigo-600 text-white">Proceed to Checkout</button>
+            </div>
+          </div>
 
-/* clear order UI */
-function simulateClearOrder(){
-  currentFile = null;
-  currentOrder = null;
-  $('fileInput').value = '';
-  $('filePreview').textContent = 'No file selected';
-  $('orderStatus').textContent = '';
-  $('qrArea').style.display = 'none';
-  $('mapArea').classList.add('hidden');
-  updateSummary();
-}
-
-/* ----- Recent orders storage ----- */
-function saveOrder(order){
-  let arr = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-  arr.unshift(order); if(arr.length>8) arr = arr.slice(0,8);
-  localStorage.setItem(ordersKey, JSON.stringify(arr));
-}
-function addRecentList(){
-  const arr = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-  const el = $('recentOrders'); el.innerHTML = '';
-  if(arr.length === 0){ el.innerHTML = '<div class="muted-small">No orders yet</div>'; return; }
-  arr.forEach(o=>{
-    const row = document.createElement('div'); row.className='order-row';
-    row.innerHTML = '<div style="flex:1"><div style="font-weight:700">'+escapeHtml(o.file)+'</div><div class="muted-small">'+new Date(o.ts).toLocaleString()+'</div></div><div style="text-align:right"><div class="muted-small">€'+o.cost.toFixed(2)+'</div><div style="margin-top:6px"><button class="btn ghost" onclick="openTrackerFromList(\''+o.track+'\')">Track</button></div></div>';
-    el.appendChild(row);
-  });
-}
-function openTrackerFromList(track){
-  const arr = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-  const ord = arr.find(x => x.track === track);
-  if(!ord) { alert('Order not found'); return; }
-  openTracker(ord.track, ord.eta || 25);
-}
-
-/* small escape HTML */
-function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
-
-/* ---------- TRACKER UI & SIM ---------- */
-const trackerModal = $('trackerModal');
-const progressBar = $('progressBar');
-const trkStatus = $('trkStatus');
-const trkEta = $('trkEta');
-const trkCodeText = $('trkCodeText');
-const trackerRider = $('trackerRider');
-
-let trackerInterval = null;
-let trackerProgress = 0;
-let trackerPaused = false;
-
-function openTracker(trackCode, eta){
-  // show modal
-  trackerModal.style.display = 'flex';
-  // set values
-  trkCodeText.textContent = trackCode;
-  $('trackerQr').innerHTML = ''; drawFakeQR($('trackerQr'), trackCode);
-  progressBar.style.width = '0%'; trackerProgress = 0;
-  trkEta.textContent = 'ETA: ' + (eta || 25) + ' min';
-  trkStatus.textContent = 'Preparing';
-  // start simulation
-  if(trackerInterval) clearInterval(trackerInterval);
-  trackerPaused = false; $('pauseBtn').textContent = 'Pause';
-  trackerInterval = setInterval(()=> {
-    if(trackerPaused) return;
-    trackerProgress = Math.min(100, trackerProgress + (1 + Math.random()*3)); // step
-    progressBar.style.width = trackerProgress + '%';
-    // move rider (display)
-    const mapWidth = 520; // px relative
-    const translateX = Math.round((trackerProgress/100) * mapWidth);
-    trackerRider.style.transform = 'translateX(' + translateX + 'px)';
-    // status change
-    if(trackerProgress < 10) trkStatus.textContent = 'Preparing';
-    else if(trackerProgress < 40) trkStatus.textContent = 'Printing';
-    else if(trackerProgress < 70) trkStatus.textContent = 'Rider assigned';
-    else if(trackerProgress < 95) trkStatus.textContent = 'Out for delivery';
-    else trkStatus.textContent = 'Arriving';
-    if(trackerProgress >= 100) {
-      trkStatus.textContent = 'Delivered';
-      clearInterval(trackerInterval);
-      trackerInterval = null;
+          <aside className="bg-white rounded-lg p-4 shadow">
+            <h4 className="font-semibold mb-3">Summary</h4>
+            <div className="text-sm mb-2">Subtotal: €{subtotal.toFixed(2)}</div>
+            <div className="text-sm mb-2">Delivery: €{delivery.toFixed(2)}</div>
+            <div className="text-sm mb-2">Tax: €{tax.toFixed(2)}</div>
+            <div className="font-semibold text-lg mt-4">Total: €{total.toFixed(2)}</div>
+          </aside>
+        </div>
+      );
     }
-  }, 600);
-}
 
-/* tracker controls */
-$('closeTrackerBtn').addEventListener('click', ()=> {
-  trackerModal.style.display = 'none';
-  if(trackerInterval) clearInterval(trackerInterval);
-  trackerInterval = null;
-});
-$('pauseBtn').addEventListener('click', ()=> {
-  trackerPaused = !trackerPaused;
-  $('pauseBtn').textContent = trackerPaused ? 'Resume' : 'Pause';
-});
-$('resetBtn').addEventListener('click', ()=> {
-  if(trackerInterval) clearInterval(trackerInterval);
-  trackerInterval = null;
-  openTracker(trkCodeText.textContent, parseInt((trkEta.textContent||'').replace(/\D/g,''))||25);
-});
+    function Checkout({ cart, onPlaceOrder, onBack }) {
+      const [name, setName] = useState("");
+      const [address, setAddress] = useState("");
 
-/* Auto-open tracker if URL contains ?track=... */
-(function handleDeepLink(){
-  const params = new URLSearchParams(location.search);
-  const t = params.get('track');
-  if(t){
-    // attempt to find order matching track
-    const arr = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-    const o = arr.find(x => x.track === t);
-    const eta = o ? o.eta : 25;
-    openTracker(t, eta);
-  }
-})();
+      function place() {
+        const order = {
+          id: "ord_" + Date.now(),
+          items: cart,
+          status: "created",
+          customer: { name, address },
+          createdAt: Date.now(),
+        };
+        onPlaceOrder(order);
+      }
 
-/* Init */
-(function init(){
-  addRecentList();
-  updateSummary();
-  // default nav
-  goTo('homePage');
-  // auth
-  if(!checkAuth()) showLogin(true);
-})();
-</script>
+      return (
+        <div className="max-w-3xl mx-auto bg-white rounded-lg p-6 shadow">
+          <h3 className="text-lg font-semibold mb-4">Checkout</h3>
+          <div className="space-y-3">
+            <label className="block">
+              <div className="text-xs text-gray-600 mb-1">Full name</div>
+              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded p-2" />
+            </label>
+            <label>
+              <div className="text-xs text-gray-600 mb-1">Delivery address (or pickup)</div>
+              <input value={address} onChange={(e) => setAddress(e.target.value)} className="w-full border rounded p-2" />
+            </label>
+
+            <div className="mt-4">
+              <div className="text-sm text-gray-600 mb-2">Payment (mock)</div>
+              <div className="border rounded p-3">
+                <input placeholder="Card number" className="w-full border rounded p-2 mb-2" />
+                <div className="flex gap-2">
+                  <input placeholder="MM/YY" className="w-1/2 border rounded p-2" />
+                  <input placeholder="CVC" className="w-1/2 border rounded p-2" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-4">
+              <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
+              <button onClick={place} className="px-4 py-2 rounded bg-indigo-600 text-white">Place Order</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function OrderTracker({ order, onBack }) {
+      const [status, setStatus] = useState(order ? order.status : "created");
+
+      return (
+        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-semibold">Order Tracker</h3>
+              <div className="text-sm text-gray-500">Order: {order?.id || "—"}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm">Status</div>
+              <div className="font-medium">{status}</div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <ol className="space-y-4">
+              {[
+                ["created", "Order placed"],
+                ["accepted", "Shop accepted"],
+                ["printing", "Printing"],
+                ["qc", "Quality check"],
+                ["out_for_delivery", "Out for delivery"],
+                ["delivered", "Delivered"],
+              ].map(([key, label]) => (
+                <li key={key} className={\`p-3 rounded border \${status === key ? "bg-indigo-50 border-indigo-200" : "bg-white"}\`}>
+                  <div className="flex justify-between">
+                    <div>
+                      <div className="font-medium">{label}</div>
+                      <div className="text-xs text-gray-500">{key === status ? "Current" : ""}</div>
+                    </div>
+                    <div className="text-xs text-gray-400">{key}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
+            <button onClick={() => setStatus("out_for_delivery")} className="px-4 py-2 rounded bg-indigo-600 text-white">Simulate Out for Delivery</button>
+          </div>
+        </div>
+      );
+    }
+
+    function ShopDashboard() {
+      return (
+        <div className="max-w-6xl mx-auto bg-white rounded-lg p-6 shadow">
+          <h3 className="text-lg font-semibold mb-4">Shop Dashboard (demo)</h3>
+          <div className="text-sm text-gray-500">Queue: 3 new orders • Active printers: 2</div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 border rounded">Order #001 — A4 BW</div>
+            <div className="p-4 border rounded">Order #002 — A4 Color</div>
+            <div className="p-4 border rounded">Order #003 — Lamination</div>
+          </div>
+        </div>
+      );
+    }
+
+    function DriverPanel() {
+      return (
+        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
+          <h3 className="text-lg font-semibold mb-4">Driver Panel (demo)</h3>
+          <div className="text-sm text-gray-500">Assigned: 1 pickup, 2 deliveries</div>
+          <div className="mt-4 space-y-3">
+            <div className="p-3 border rounded">Pickup — Shop A — Accept</div>
+            <div className="p-3 border rounded">Delivery — Order #002 — Navigate</div>
+          </div>
+        </div>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="border-t mt-10">
+          <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-gray-500">© PrintMate prototype</div>
+        </footer>
+      );
+    }
+
+    function App() {
+      const [route, setRoute] = useState("home");
+      const [cart, setCart] = useState([]);
+      const [currentOrder, setCurrentOrder] = useState(null);
+
+      return (
+        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+          <Header onNavigate={setRoute} route={route} />
+          <main className="max-w-6xl mx-auto p-6">
+            {route === "home" && <Home onStart={() => setRoute("upload")} />}
+            {route === "upload" && <UploadStep onAdd={(item) => setCart((c) => [...c, item])} onNext={() => setRoute("pricing")} cart={cart} onBack={() => setRoute("home")} />}
+            {route === "pricing" && <Pricing cart={cart} onCheckout={() => setRoute("checkout")} onBack={() => setRoute("upload")} />}
+            {route === "checkout" && <Checkout cart={cart} onPlaceOrder={(order) => { setCurrentOrder(order); setCart([]); setRoute("tracker"); }} onBack={() => setRoute("pricing")} />}
+            {route === "tracker" && <OrderTracker order={currentOrder} onBack={() => setRoute("home")} />}
+            {route === "shop" && <ShopDashboard />}
+            {route === "driver" && <DriverPanel />}
+          </main>
+          <Footer />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
 </body>
 </html>
