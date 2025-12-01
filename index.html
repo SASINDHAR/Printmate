@@ -1,398 +1,441 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PrintMate — Prototype</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PrintMate — Lightweight</title>
+<meta name="description" content="Lightweight PrintMate frontend — low-bandwidth friendly, offline-capable." />
+<style>
+  /* Minimal, mobile-first styling */
+  :root{
+    --bg:#f7fafc; --card:#fff; --muted:#6b7280; --primary:#334155; --accent:#4f46e5;
+  }
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; background:var(--bg); color:var(--primary); -webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:16px}
+  header{display:flex;align-items:center;gap:12px;padding:12px 0}
+  .logo{width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  h1{font-size:18px;margin:0}
+  p.lead{margin:6px 0 14px;color:var(--muted);font-size:13px}
 
-  <!-- Tailwind CDN for quick styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  main{display:grid;grid-template-columns:1fr;gap:14px}
+  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 0 rgba(16,24,40,0.04)}
+  .buttons{display:flex;gap:8px;flex-wrap:wrap}
+  button{background:var(--accent);color:white;border:0;padding:10px 12px;border-radius:8px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--primary);border:1px solid #e6e9ef}
+  .small{font-size:13px;padding:8px 10px;border-radius:8px}
+  label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+  input[type="text"], input[type="tel"], select, input[type="number"], textarea{
+    width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;box-sizing:border-box;margin-bottom:10px;
+  }
 
-  <!-- React + ReactDOM (UMD dev builds) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  .grid-2{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:720px){ .grid-2{grid-template-columns:2fr 1fr} }
 
-  <!-- Babel for inline JSX (only for prototype/demo) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  .summary{font-weight:600;font-size:15px}
+  .muted{color:var(--muted);font-size:13px}
+  .tiny{font-size:12px;color:var(--muted)}
 
-  <style>
-    body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
-  </style>
+  .order-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px dashed #eee;margin-bottom:8px}
+  .order-actions{display:flex;gap:8px}
+
+  .status{padding:8px;border-radius:8px;font-weight:600}
+  .status.new{background:#f1f5f9;color:#0f172a}
+  .status.pending{background:#fff7ed;color:#92400e}
+  .status.done{background:#ecfccb;color:#14532d}
+
+  footer{margin-top:18px;padding:10px 0;color:var(--muted);font-size:13px;text-align:center}
+
+  /* switch */
+  .switch{display:inline-flex;align-items:center;gap:8px}
+  .checkbox{width:40px;height:22px;background:#e6e9ef;border-radius:999px;position:relative;cursor:pointer}
+  .knob{width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:all .15s}
+  .checkbox.on{background:var(--accent)}
+  .checkbox.on .knob{left:20px}
+
+  /* service worker notice */
+  .notice{background:#fffbe6;border:1px solid #ffe58f;padding:8px;border-radius:8px;color:#664d03;font-size:13px}
+</style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">PM</div>
+      <div>
+        <h1>PrintMate — Lightweight</h1>
+        <p class="lead">Fast prints, low data usage, offline-capable. Works on simple phones & slow networks.</p>
+      </div>
+    </header>
 
-  <div id="root" class="min-h-screen"></div>
+    <main>
+      <section class="card grid-2" aria-labelledby="order">
+        <!-- Left: order form -->
+        <div>
+          <h2 id="order" style="margin-top:0">Place an order</h2>
 
-  <!-- App code (Babel compiles this) -->
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+          <label for="service">Service</label>
+          <select id="service" aria-label="Service">
+            <option value="bw_a4">A4 — Black & White (0.05 / page)</option>
+            <option value="color_a4">A4 — Color (0.12 / page)</option>
+            <option value="lamination">Lamination (flat fee)</option>
+          </select>
 
-    function NavButton({ children, active, onClick }) {
-      const base = "px-3 py-2 rounded-md text-sm";
-      const cls = active ? "bg-indigo-50 text-indigo-600" : "text-gray-600 hover:bg-gray-100";
-      return <button onClick={onClick} className={`${base} ${cls}`}>{children}</button>;
-    }
+          <label for="pages">Pages (if printing)</label>
+          <input id="pages" type="number" min="1" value="1" />
 
-    function Header({ onNavigate, route }) {
-      return (
-        <header className="bg-white shadow-sm">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">PM</div>
-              <div>
-                <h1 className="text-lg font-semibold">PrintMate</h1>
-                <p className="text-xs text-gray-500">Fast prints — realtime tracking</p>
+          <label for="qty">Copies</label>
+          <input id="qty" type="number" min="1" value="1" />
+
+          <label for="file">Upload file (max <span id="maxsizeLabel">5</span> MB)</label>
+          <input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+
+          <label for="name">Full name</label>
+          <input id="name" type="text" placeholder="Your name" />
+
+          <label for="phone">Phone number</label>
+          <input id="phone" type="tel" placeholder="+91 98765 43210" />
+
+          <label for="addr">Delivery address (or type 'pickup')</label>
+          <textarea id="addr" rows="2" placeholder="Street, city, landmark"></textarea>
+
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <div class="switch">
+              <div id="lowDataSwitch" class="checkbox" role="switch" aria-checked="false" title="Low data mode">
+                <div class="knob"></div>
               </div>
+              <div class="tiny">Low-data mode</div>
             </div>
 
-            <nav className="flex items-center gap-4">
-              <NavButton active={route === "home"} onClick={() => onNavigate("home")}>Home</NavButton>
-              <NavButton active={route === "upload"} onClick={() => onNavigate("upload")}>Order</NavButton>
-              <NavButton active={route === "shop"} onClick={() => onNavigate("shop")}>Shop</NavButton>
-              <NavButton active={route === "driver"} onClick={() => onNavigate("driver")}>Driver</NavButton>
-              <button onClick={() => onNavigate("tracker")} className="ml-2 px-4 py-2 rounded-md border bg-white text-sm shadow-sm">Track Order</button>
-            </nav>
-          </div>
-        </header>
-      );
-    }
-
-    function Home({ onStart }) {
-      return (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-3xl font-extrabold mb-3">Print & Xerox — delivered fast</h2>
-            <p className="text-gray-600 mb-6">Upload your documents, choose options (color/BW, duplex, finishing), pay and track in real-time. Pickup or delivery — your choice.</p>
-            <div className="flex gap-3">
-              <button onClick={onStart} className="px-5 py-3 rounded-lg bg-indigo-600 text-white shadow">Start an order</button>
-              <button className="px-5 py-3 rounded-lg border">See pricing</button>
-            </div>
-
-            <div className="mt-8 grid grid-cols-2 gap-3">
-              <div className="flex gap-3 items-start bg-gray-50 p-3 rounded">
-                <div className="w-10 h-10 rounded-md bg-white shadow flex items-center justify-center">📄</div>
-                <div>
-                  <div className="font-semibold text-sm">Fast Turnaround</div>
-                  <div className="text-xs text-gray-500">Printing from 15 minutes</div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start bg-gray-50 p-3 rounded">
-                <div className="w-10 h-10 rounded-md bg-white shadow flex items-center justify-center">🚚</div>
-                <div>
-                  <div className="font-semibold text-sm">Real-time Tracking</div>
-                  <div className="text-xs text-gray-500">Live driver and status updates</div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start bg-gray-50 p-3 rounded">
-                <div className="w-10 h-10 rounded-md bg-white shadow flex items-center justify-center">✂️</div>
-                <div>
-                  <div className="font-semibold text-sm">Multiple Services</div>
-                  <div className="text-xs text-gray-500">Lamination, binding, passport photos</div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start bg-gray-50 p-3 rounded">
-                <div className="w-10 h-10 rounded-md bg-white shadow flex items-center justify-center">🔒</div>
-                <div>
-                  <div className="font-semibold text-sm">Secure Payments</div>
-                  <div className="text-xs text-gray-500">Stripe & wallet ready</div>
-                </div>
-              </div>
+            <div style="margin-left:auto" class="tiny">Currency:
+              <select id="currency" style="font-size:13px;margin-left:6px">
+                <option value="EUR">€ Euro</option>
+                <option value="INR">₹ INR</option>
+                <option value="NGN">₦ NGN</option>
+                <option value="KES">KSh KES</option>
+                <option value="GHS">GHS</option>
+                <option value="USD">US$</option>
+              </select>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="font-semibold mb-3">Quick Order Preview</h3>
-            <div className="border rounded p-3">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-sm font-medium">A4 - Black & White</div>
-                <div className="text-sm font-semibold">€0.05 / page</div>
-              </div>
-              <div className="text-xs text-gray-500 mb-3">Duplex available • 100 pages max</div>
-              <div className="flex gap-2">
-                <button className="px-3 py-2 rounded bg-indigo-50 text-indigo-600 text-sm">Upload</button>
-                <button className="px-3 py-2 rounded border text-sm">Customize</button>
-              </div>
+          <div class="buttons" style="margin-top:6px;">
+            <button id="addBtn" class="small">Add to cart</button>
+            <button id="placeBtn" class="small ghost" style="background:#f8fafc;border:1px solid #e6e9ef">Place order (online)</button>
+            <button id="codBtn" class="small ghost" style="background:#fff;border:1px solid #e6e9ef">Cash on delivery</button>
+          </div>
+
+          <div id="message" class="tiny" style="margin-top:8px;color:var(--muted)"></div>
+        </div>
+
+        <!-- Right: cart & summary -->
+        <aside>
+          <h3 style="margin-top:0">Cart</h3>
+          <div id="cartList" aria-live="polite" class="muted tiny">No items yet</div>
+
+          <div style="margin-top:12px" class="card">
+            <div class="summary">Summary</div>
+            <div style="margin-top:8px">
+              <div class="muted tiny">Subtotal: <span id="subtotal">0.00</span></div>
+              <div class="muted tiny">Delivery: <span id="delivery">0.00</span></div>
+              <div class="muted tiny">Tax: <span id="tax">0.00</span></div>
+              <div style="margin-top:8px;font-weight:700">Total: <span id="total">0.00</span></div>
+              <div class="tiny" style="margin-top:8px">Payment methods: Card (placeholder), Mobile money (replace with local provider), Cash on delivery</div>
             </div>
           </div>
-        </section>
-      );
+
+          <div style="margin-top:12px">
+            <div class="notice">Tip: If your network is slow, enable <strong>Low-data mode</strong> to reduce usage. Orders saved locally if the network is offline.</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="card" aria-labelledby="ordersTitle">
+        <h3 id="ordersTitle">Your saved orders (local)</h3>
+        <div id="savedOrders" class="muted tiny">No saved orders</div>
+      </section>
+
+      <section class="card">
+        <h3 style="margin-top:0">Shop info</h3>
+        <div class="muted tiny">
+          If you are a shop owner: you can open this site on a laptop and click "Sync pending" to see orders saved locally on phones (or instruct customers to show the order ID). For production, add a small server endpoint to receive orders.
+        </div>
+        <div style="margin-top:8px;" class="buttons">
+          <button id="syncBtn" class="small ghost">Sync pending</button>
+          <button id="clearBtn" class="small ghost">Clear local orders</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="muted tiny">© PrintMate prototype — works offline • Max upload <span id="maxsizeLabelFooter">5</span> MB</div>
+      <div class="tiny" style="margin-top:6px">Contact: +00 000 000 000 • Replace with local phone / payment details</div>
+    </footer>
+  </div>
+
+<script>
+/* Lightweight app logic (no frameworks) */
+/* Configuration: change these for your market */
+const PRICE = {
+  bw_a4: 0.05,
+  color_a4: 0.12,
+  lamination: 1.5
+};
+const DELIVERY_FEE = 2.5; // default, you may replace with distance logic
+const TAX_RATE = 0.07; // 7%
+const MAX_UPLOAD_MB = 5;
+
+document.getElementById('maxsizeLabel').textContent = MAX_UPLOAD_MB;
+document.getElementById('maxsizeLabelFooter').textContent = MAX_UPLOAD_MB;
+
+let cart = JSON.parse(localStorage.getItem('printmate_cart') || '[]');
+let orders = JSON.parse(localStorage.getItem('printmate_orders') || '[]');
+let lowData = false;
+let currency = localStorage.getItem('printmate_currency') || 'EUR';
+
+const els = {
+  cartList: document.getElementById('cartList'),
+  subtotal: document.getElementById('subtotal'),
+  delivery: document.getElementById('delivery'),
+  tax: document.getElementById('tax'),
+  total: document.getElementById('total'),
+  savedOrders: document.getElementById('savedOrders'),
+  message: document.getElementById('message'),
+  lowDataSwitch: document.getElementById('lowDataSwitch'),
+  currencySelect: document.getElementById('currency')
+};
+
+els.currencySelect.value = currency;
+
+function fmt(v){
+  // simple currency symbol mapping for display only (no exchange rates)
+  const sym = { EUR:'€', INR:'₹', NGN:'₦', KES:'KSh', GHS:'GHS', USD:'US$' }[currency] || '';
+  return sym + Number(v).toFixed(2);
+}
+
+function calculate() {
+  let subtotal = 0;
+  cart.forEach(it => {
+    const unit = PRICE[it.service] || 0;
+    subtotal += (unit * it.pages * it.qty) + (it.service === 'lamination' ? unit * it.qty : 0);
+  });
+  const delivery = subtotal > 20 ? 0 : DELIVERY_FEE;
+  const tax = subtotal * TAX_RATE;
+  const total = subtotal + delivery + tax;
+  els.subtotal.textContent = fmt(subtotal);
+  els.delivery.textContent = fmt(delivery);
+  els.tax.textContent = fmt(tax);
+  els.total.textContent = fmt(total);
+}
+
+function renderCart() {
+  if (cart.length === 0) {
+    els.cartList.textContent = 'No items yet';
+    return;
+  }
+  els.cartList.innerHTML = '';
+  cart.forEach((it, idx) => {
+    const div = document.createElement('div');
+    div.className = 'order-item';
+    div.innerHTML = '<div><div style="font-weight:600">'+(it.service.replace('_',' '))+'</div><div class="tiny">'+it.pages+' pages • '+it.qty+' copies</div></div>';
+    const right = document.createElement('div');
+    right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
+    const price = document.createElement('div'); price.textContent = fmt(((PRICE[it.service]||0) * it.pages * it.qty)); price.className='tiny';
+    const del = document.createElement('button'); del.className='small ghost'; del.textContent='Remove';
+    del.onclick = ()=>{ cart.splice(idx,1); saveCart(); renderCart(); calculate(); };
+    right.appendChild(price); right.appendChild(del); div.appendChild(right);
+    els.cartList.appendChild(div);
+  });
+}
+
+function saveCart(){ localStorage.setItem('printmate_cart', JSON.stringify(cart)); }
+
+function saveOrders(){ localStorage.setItem('printmate_orders', JSON.stringify(orders)); }
+
+function renderOrders(){
+  if (orders.length === 0) { els.savedOrders.textContent = 'No saved orders'; return; }
+  els.savedOrders.innerHTML = '';
+  orders.slice().reverse().forEach(o=>{
+    const d = document.createElement('div'); d.style.marginBottom='8px';
+    const head = document.createElement('div'); head.style.display='flex'; head.style.justifyContent='space-between';
+    head.innerHTML = '<div style="font-weight:700">'+o.id+'</div><div class="tiny">'+new Date(o.created).toLocaleString()+'</div>';
+    const st = document.createElement('div'); st.className = 'status ' + (o.synced? 'done':'pending'); st.style.marginTop='6px';
+    st.textContent = o.synced ? 'Sent' : 'Pending upload';
+    d.appendChild(head);
+    d.appendChild(st);
+    d.style.padding='8px'; d.style.borderRadius='8px'; d.style.border='1px solid #efefef';
+    els.savedOrders.appendChild(d);
+  });
+}
+
+function addToCart() {
+  const svc = document.getElementById('service').value;
+  let pages = Number(document.getElementById('pages').value) || 1;
+  const qty = Number(document.getElementById('qty').value) || 1;
+  const fileInput = document.getElementById('file');
+  if (fileInput.files && fileInput.files[0]) {
+    const f = fileInput.files[0];
+    const mb = f.size / (1024*1024);
+    if (mb > MAX_UPLOAD_MB) {
+      showMessage('File too large — choose a smaller file or use shop upload (max ' + MAX_UPLOAD_MB + ' MB).');
+      return;
     }
+  }
+  const item = { service: svc, pages: pages, qty: qty, fileName: fileInput.files && fileInput.files[0] ? fileInput.files[0].name : null };
+  cart.push(item);
+  saveCart();
+  renderCart();
+  calculate();
+  showMessage('Added to cart');
+}
 
-    function UploadStep({ onAdd, onNext, cart, onBack }) {
-      const [service, setService] = useState("bw_a4");
-      const [qty, setQty] = useState(1);
-      const [fileName, setFileName] = useState(null);
+function showMessage(msg, timeout=3500){
+  els.message.textContent = msg;
+  setTimeout(()=>{ if(els.message.textContent === msg) els.message.textContent = '' }, timeout);
+}
 
-      function handleAdd() {
-        const item = {
-          id: "it_" + Date.now(),
-          service,
-          qty,
-          file: fileName || "example.pdf",
-          pricePerPage: service === "color_a4" ? 0.12 : 0.05,
-          pages: 3,
-        };
-        onAdd(item);
+function placeOrder(online=true) {
+  if (cart.length === 0) { showMessage('Cart empty'); return; }
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const addr = document.getElementById('addr').value.trim() || 'pickup';
+  if (!name || !phone) { showMessage('Please enter name and phone'); return; }
+  const order = {
+    id: 'PM' + Date.now().toString(36),
+    customer: { name, phone, addr },
+    items: cart.slice(),
+    totalLocal: els.total.textContent,
+    created: Date.now(),
+    synced: false,
+    method: online ? 'online' : 'cash_on_delivery',
+    currency: currency
+  };
+  // try to send immediately if online
+  if (navigator.onLine && online) {
+    // NOTE: no server in this prototype — simulate server by marking synced
+    order.synced = true;
+    showMessage('Order placed (simulated online). Order ID: ' + order.id);
+  } else {
+    showMessage('Order saved locally (offline or COD). Order ID: ' + order.id);
+  }
+  orders.push(order);
+  saveOrders();
+  cart = [];
+  saveCart();
+  renderCart();
+  renderOrders();
+  // clear form
+  document.getElementById('file').value = '';
+  document.getElementById('pages').value = '1';
+  document.getElementById('qty').value = '1';
+  document.getElementById('addr').value = '';
+}
+
+function syncPending(){
+  if (!navigator.onLine) { showMessage('No network — connect to the internet to sync'); return; }
+  let did = 0;
+  orders.forEach(o=>{ if(!o.synced){ o.synced = true; did++; }});
+  if (did) {
+    saveOrders();
+    renderOrders();
+    showMessage('Synced ' + did + ' orders (simulated).');
+  } else showMessage('No pending orders to sync');
+}
+
+/* events */
+document.getElementById('addBtn').addEventListener('click', addToCart);
+document.getElementById('placeBtn').addEventListener('click', ()=>placeOrder(true));
+document.getElementById('codBtn').addEventListener('click', ()=>placeOrder(false));
+document.getElementById('syncBtn').addEventListener('click', syncPending);
+document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('Clear all local orders?')){ orders=[]; saveOrders(); renderOrders(); showMessage('Cleared'); } });
+
+document.getElementById('currency').addEventListener('change', (e)=>{ currency=e.target.value; localStorage.setItem('printmate_currency', currency); calculate(); renderCart(); renderOrders(); });
+
+els.lowDataSwitch.addEventListener('click', ()=>{
+  lowData = !lowData;
+  els.lowDataSwitch.classList.toggle('on', lowData);
+  els.lowDataSwitch.setAttribute('aria-checked', String(lowData));
+  localStorage.setItem('printmate_lowdata', lowData ? '1' : '0');
+  showMessage('Low-data ' + (lowData ? 'enabled' : 'disabled'));
+});
+
+/* initial render */
+renderCart(); calculate(); renderOrders();
+if (localStorage.getItem('printmate_lowdata') === '1') { els.lowDataSwitch.classList.add('on'); els.lowDataSwitch.setAttribute('aria-checked','true'); lowData = true; }
+
+/* Service Worker: offline caching for the site shell */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw-printmate.js').then(reg=>{
+    console.log('SW registered', reg.scope);
+  }).catch(err=>{
+    console.warn('SW failed', err);
+  });
+}
+
+/* small helper to auto-sync when online */
+window.addEventListener('online', ()=>{ showMessage('Network available — you can sync pending orders.'); });
+
+</script>
+
+<!-- Service worker file delivered inline via blob approach for static hosting that doesn't allow multiple files:
+     We create it dynamically if the host blocks separate resource. But many static hosts allow a separate file.
+     For GitHub Pages you can also create sw-printmate.js in repo root with same content as below.
+-->
+<script>
+(function(){
+  // create service worker file content
+  const swContent = `
+const CACHE_NAME = 'printmate-v1';
+const ASSETS = [
+  '/',
+  location.pathname,
+  // keep this list small; we cache the shell
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(()=>self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  // try cache first for app shell, otherwise network
+  if (req.method !== 'GET') return;
+  event.respondWith(
+    caches.match(req).then(cached => {
+      if (cached) return cached;
+      return fetch(req).then(resp => {
+        // optionally cache new requests (avoid caching large uploads)
+        return resp;
+      }).catch(()=> caches.match('/')); // fallback
+    })
+  );
+});
+  `.trim();
+
+  // try to register the service worker file via blob URL if separate file not present
+  if ('serviceWorker' in navigator) {
+    fetch('sw-printmate.js').then(r=>{
+      if (r.ok) {
+        // separate file exists, nothing to do
+      } else {
+        // create blob and register
+        const blob = new Blob([swContent], {type:'application/javascript'});
+        const url = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(url).catch(()=>{/* ignore */});
       }
+    }).catch(()=> {
+      const blob = new Blob([swContent], {type:'application/javascript'});
+      const url = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(url).catch(()=>{/* ignore */});
+    });
+  }
+})();
+</script>
 
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-white rounded-lg p-6 shadow">
-            <h3 className="text-lg font-semibold mb-4">Upload documents</h3>
-            <div className="border-dashed border-2 border-gray-200 p-6 rounded text-center">
-              <input id="file" type="file" accept=".pdf,.docx,.jpg,.png"
-                onChange={(e) => setFileName(e.target.files && e.target.files[0] ? e.target.files[0].name : null)}
-                className="mb-3" />
-              <div className="text-sm text-gray-500">Drop files here or click to browse</div>
-              <div className="mt-3 text-xs text-gray-600">Selected: {fileName || "—"}</div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <label className="block">
-                <div className="text-xs text-gray-600 mb-1">Service</div>
-                <select value={service} onChange={(e) => setService(e.target.value)} className="w-full border rounded p-2">
-                  <option value="bw_a4">A4 • Black & White</option>
-                  <option value="color_a4">A4 • Color</option>
-                  <option value="bw_a3">A3 • Black & White</option>
-                  <option value="lamination">Lamination</option>
-                </select>
-              </label>
-
-              <label>
-                <div className="text-xs text-gray-600 mb-1">Quantity</div>
-                <input type="number" value={qty} min="1" onChange={(e) => setQty(parseInt(e.target.value || "1", 10))} className="w-full border rounded p-2"/>
-              </label>
-            </div>
-
-            <div className="mt-4 flex gap-3">
-              <button onClick={handleAdd} className="px-4 py-2 rounded bg-indigo-600 text-white">Add to cart</button>
-              <button onClick={onNext} className="px-4 py-2 rounded border">Go to pricing</button>
-              <button onClick={onBack} className="px-4 py-2 rounded border text-sm">Back</button>
-            </div>
-          </div>
-
-          <aside className="bg-white rounded-lg p-4 shadow">
-            <h4 className="font-semibold mb-3">Cart</h4>
-            <div className="space-y-3">
-              {cart.length === 0 && <div className="text-sm text-gray-500">No items yet</div>}
-              {cart.map((c) => (
-                <div key={c.id} className="flex justify-between items-center">
-                  <div>
-                    <div className="text-sm font-medium">{c.service}</div>
-                    <div className="text-xs text-gray-500">{c.pages} pages • {c.file}</div>
-                  </div>
-                  <div className="text-sm">€{(c.pages * c.qty * c.pricePerPage).toFixed(2)}</div>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </div>
-      );
-    }
-
-    function Pricing({ cart, onCheckout, onBack }) {
-      const subtotal = cart.reduce((s, it) => s + it.pages * it.qty * it.pricePerPage, 0);
-      const delivery = subtotal > 20 ? 0 : 3.5;
-      const tax = subtotal * 0.07;
-      const total = subtotal + delivery + tax;
-
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-white rounded-lg p-6 shadow">
-            <h3 className="text-lg font-semibold mb-4">Pricing & options</h3>
-            <div className="space-y-4">
-              {cart.map((it) => (
-                <div key={it.id} className="flex justify-between items-center border p-3 rounded">
-                  <div>
-                    <div className="font-medium">{it.service}</div>
-                    <div className="text-xs text-gray-500">{it.pages} pages • {it.qty} copies</div>
-                  </div>
-                  <div className="text-right">
-                    <div>€{(it.pages * it.qty * it.pricePerPage).toFixed(2)}</div>
-                    <div className="text-xs text-gray-400">per item</div>
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4">
-                <label className="flex items-center gap-3">
-                  <input type="checkbox" /> Use express printing (additional fee)
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
-              <button onClick={onCheckout} className="px-4 py-2 rounded bg-indigo-600 text-white">Proceed to Checkout</button>
-            </div>
-          </div>
-
-          <aside className="bg-white rounded-lg p-4 shadow">
-            <h4 className="font-semibold mb-3">Summary</h4>
-            <div className="text-sm mb-2">Subtotal: €{subtotal.toFixed(2)}</div>
-            <div className="text-sm mb-2">Delivery: €{delivery.toFixed(2)}</div>
-            <div className="text-sm mb-2">Tax: €{tax.toFixed(2)}</div>
-            <div className="font-semibold text-lg mt-4">Total: €{total.toFixed(2)}</div>
-          </aside>
-        </div>
-      );
-    }
-
-    function Checkout({ cart, onPlaceOrder, onBack }) {
-      const [name, setName] = useState("");
-      const [address, setAddress] = useState("");
-
-      function place() {
-        const order = {
-          id: "ord_" + Date.now(),
-          items: cart,
-          status: "created",
-          customer: { name, address },
-          createdAt: Date.now(),
-        };
-        onPlaceOrder(order);
-      }
-
-      return (
-        <div className="max-w-3xl mx-auto bg-white rounded-lg p-6 shadow">
-          <h3 className="text-lg font-semibold mb-4">Checkout</h3>
-          <div className="space-y-3">
-            <label className="block">
-              <div className="text-xs text-gray-600 mb-1">Full name</div>
-              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded p-2" />
-            </label>
-            <label>
-              <div className="text-xs text-gray-600 mb-1">Delivery address (or pickup)</div>
-              <input value={address} onChange={(e) => setAddress(e.target.value)} className="w-full border rounded p-2" />
-            </label>
-
-            <div className="mt-4">
-              <div className="text-sm text-gray-600 mb-2">Payment (mock)</div>
-              <div className="border rounded p-3">
-                <input placeholder="Card number" className="w-full border rounded p-2 mb-2" />
-                <div className="flex gap-2">
-                  <input placeholder="MM/YY" className="w-1/2 border rounded p-2" />
-                  <input placeholder="CVC" className="w-1/2 border rounded p-2" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-4">
-              <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
-              <button onClick={place} className="px-4 py-2 rounded bg-indigo-600 text-white">Place Order</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function OrderTracker({ order, onBack }) {
-      const [status, setStatus] = useState(order ? order.status : "created");
-
-      return (
-        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">Order Tracker</h3>
-              <div className="text-sm text-gray-500">Order: {order?.id || "—"}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm">Status</div>
-              <div className="font-medium">{status}</div>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <ol className="space-y-4">
-              {[
-                ["created", "Order placed"],
-                ["accepted", "Shop accepted"],
-                ["printing", "Printing"],
-                ["qc", "Quality check"],
-                ["out_for_delivery", "Out for delivery"],
-                ["delivered", "Delivered"],
-              ].map(([key, label]) => (
-                <li key={key} className={"p-3 rounded border " + (status === key ? "bg-indigo-50 border-indigo-200" : "bg-white")}>
-                  <div className="flex justify-between">
-                    <div>
-                      <div className="font-medium">{label}</div>
-                      <div className="text-xs text-gray-500">{key === status ? "Current" : ""}</div>
-                    </div>
-                    <div className="text-xs text-gray-400">{key}</div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="mt-6 flex gap-3">
-            <button onClick={onBack} className="px-4 py-2 rounded border">Back</button>
-            <button onClick={() => setStatus("out_for_delivery")} className="px-4 py-2 rounded bg-indigo-600 text-white">Simulate Out for Delivery</button>
-          </div>
-        </div>
-      );
-    }
-
-    function ShopDashboard() {
-      return (
-        <div className="max-w-6xl mx-auto bg-white rounded-lg p-6 shadow">
-          <h3 className="text-lg font-semibold mb-4">Shop Dashboard (demo)</h3>
-          <div className="text-sm text-gray-500">Queue: 3 new orders • Active printers: 2</div>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded">Order #001 — A4 BW</div>
-            <div className="p-4 border rounded">Order #002 — A4 Color</div>
-            <div className="p-4 border rounded">Order #003 — Lamination</div>
-          </div>
-        </div>
-      );
-    }
-
-    function DriverPanel() {
-      return (
-        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
-          <h3 className="text-lg font-semibold mb-4">Driver Panel (demo)</h3>
-          <div className="text-sm text-gray-500">Assigned: 1 pickup, 2 deliveries</div>
-          <div className="mt-4 space-y-3">
-            <div className="p-3 border rounded">Pickup — Shop A — Accept</div>
-            <div className="p-3 border rounded">Delivery — Order #002 — Navigate</div>
-          </div>
-        </div>
-      );
-    }
-
-    function Footer() {
-      return (
-        <footer className="border-t mt-10">
-          <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-gray-500">© PrintMate prototype</div>
-        </footer>
-      );
-    }
-
-    function App() {
-      const [route, setRoute] = useState("home");
-      const [cart, setCart] = useState([]);
-      const [currentOrder, setCurrentOrder] = useState(null);
-
-      return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-          <Header onNavigate={setRoute} route={route} />
-          <main className="max-w-6xl mx-auto p-6">
-            {route === "home" && <Home onStart={() => setRoute("upload")} />}
-            {route === "upload" && <UploadStep onAdd={(item) => setCart((c) => [...c, item])} onNext={() => setRoute("pricing")} cart={cart} onBack={() => setRoute("home")} />}
-            {route === "pricing" && <Pricing cart={cart} onCheckout={() => setRoute("checkout")} onBack={() => setRoute("upload")} />}
-            {route === "checkout" && <Checkout cart={cart} onPlaceOrder={(order) => { setCurrentOrder(order); setCart([]); setRoute("tracker"); }} onBack={() => setRoute("pricing")} />}
-            {route === "tracker" && <OrderTracker order={currentOrder} onBack={() => setRoute("home")} />}
-            {route === "shop" && <ShopDashboard />}
-            {route === "driver" && <DriverPanel />}
-          </main>
-          <Footer />
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
 </body>
 </html>
