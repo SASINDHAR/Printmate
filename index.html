@@ -3,53 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PrintMate — Lightweight Printing</title>
-<meta name="description" content="Low-bandwidth print ordering system with offline support">
+<title>PrintMate — Smart Printing</title>
+<meta name="description" content="Low-bandwidth print ordering with WhatsApp integration">
 
 <style>
-:root{
-  --bg:#f8fafc;--card:#fff;--muted:#6b7280;
-  --primary:#0f172a;--accent:#4f46e5
-}
+:root{--bg:#f8fafc;--card:#fff;--muted:#6b7280;--primary:#0f172a;--accent:#4f46e5}
 *{box-sizing:border-box}
-body{
-  margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:var(--bg);color:var(--primary)
-}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--primary)}
 .wrap{max-width:1000px;margin:auto;padding:16px}
 header{display:flex;gap:12px;align-items:center}
-.logo{
-  width:44px;height:44px;border-radius:8px;
-  background:linear-gradient(135deg,#2563eb,#7c3aed);
-  display:grid;place-items:center;color:#fff;font-weight:700
-}
-.card{
-  background:var(--card);padding:14px;border-radius:10px;
-  box-shadow:0 1px 3px rgba(0,0,0,.05);margin-top:14px
-}
+.logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:grid;place-items:center;color:#fff;font-weight:700}
+.card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-top:14px}
 .grid{display:grid;gap:14px}
 @media(min-width:800px){.grid{grid-template-columns:2fr 1fr}}
 label{font-size:13px;color:var(--muted)}
-input,select,textarea,button{
-  width:100%;padding:10px;border-radius:8px;
-  border:1px solid #e5e7eb;margin-top:6px
-}
-button{
-  background:var(--accent);color:#fff;border:none;cursor:pointer
-}
+input,select,textarea,button{width:100%;padding:10px;border-radius:8px;border:1px solid #e5e7eb;margin-top:6px}
+button{background:var(--accent);color:#fff;border:none;cursor:pointer}
 button.ghost{background:#fff;color:var(--primary);border:1px solid #e5e7eb}
 .actions{display:flex;gap:8px;margin-top:10px}
 .small{font-size:13px;padding:8px}
-.order-item{
-  display:flex;justify-content:space-between;align-items:center;
-  border:1px dashed #e5e7eb;padding:8px;border-radius:8px;margin-top:6px
-}
-.status.pending{color:#92400e}
-.status.done{color:#065f46}
-.notice{
-  background:#fffbeb;border:1px solid #fde68a;
-  padding:8px;border-radius:8px;font-size:13px
-}
+.order-item{display:flex;justify-content:space-between;align-items:center;border:1px dashed #e5e7eb;padding:8px;border-radius:8px;margin-top:6px}
+.notice{background:#fffbeb;border:1px solid #fde68a;padding:8px;border-radius:8px;font-size:13px}
 footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
 </style>
 </head>
@@ -61,57 +35,53 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
   <div class="logo">PM</div>
   <div>
     <h2>PrintMate</h2>
-    <div class="muted">Lightweight • Offline • WhatsApp orders</div>
+    <div class="muted">Upload document • WhatsApp order • Offline ready</div>
   </div>
 </header>
 
 <main class="grid">
 
-<!-- ================= ORDER FORM ================= -->
+<!-- ORDER FORM -->
 <section class="card">
-<h3>Place Order</h3>
+<h3>Place Print Order</h3>
 
 <label>Service</label>
 <select id="service">
-  <option value="bw">A4 B/W</option>
+  <option value="bw">A4 Black & White</option>
   <option value="color">A4 Color</option>
   <option value="lamination">Lamination</option>
 </select>
 
 <label>Pages</label>
-<input id="pages" type="number" value="1" min="1">
+<input id="pages" type="number" min="1" value="1">
 
 <label>Copies</label>
-<input id="qty" type="number" value="1" min="1">
+<input id="qty" type="number" min="1" value="1">
+
+<label>Upload Document (PDF / Image)</label>
+<input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
 
 <label>Customer Name</label>
 <input id="name" placeholder="Full name">
 
-<label>Phone</label>
+<label>Phone Number</label>
 <input id="phone" placeholder="+91 XXXXXXXX">
 
-<label>Address / Pickup</label>
-<textarea id="addr" rows="2" placeholder="Pickup / Address"></textarea>
-
-<label>Currency</label>
-<select id="currency">
-  <option value="EUR">Euro (€)</option>
-  <option value="INR">INR (₹)</option>
-  <option value="USD">USD ($)</option>
-</select>
+<label>Delivery / Pickup Address</label>
+<textarea id="addr" rows="2" placeholder="Pickup or full address"></textarea>
 
 <div class="actions">
   <button id="addBtn" class="small">Add to Cart</button>
-  <button id="placeBtn" class="ghost small">Place Order</button>
+  <button id="placeBtn" class="ghost small">Send Order to WhatsApp</button>
 </div>
 
 <div id="msg" style="margin-top:8px;font-size:13px;color:#6b7280"></div>
 </section>
 
-<!-- ================= CART & SUMMARY ================= -->
+<!-- CART -->
 <section class="card">
 <h3>Cart</h3>
-<div id="cart"></div>
+<div id="cart">Cart empty</div>
 
 <div class="card" style="margin-top:10px">
   <div>Subtotal: <span id="sub">0</span></div>
@@ -120,73 +90,30 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
 </div>
 
 <div class="notice" style="margin-top:10px">
-Orders are saved offline & sent via WhatsApp
+📎 Documents are shared by customer directly in WhatsApp chat
 </div>
 </section>
 
 </main>
 
-<!-- ================= SAVED ORDERS ================= -->
-<section class="card">
-<h3>Saved Orders</h3>
-<div id="orders"></div>
-</section>
-
 <footer>
-© PrintMate Prototype • WhatsApp: +91 7730817844
+© PrintMate • WhatsApp Orders • +91 9959814416
 </footer>
 
-</div>
-
-<!-- ================= TEMPLATES ================= -->
-<template id="cart-item">
-  <div class="order-item">
-    <div>
-      <strong class="svc"></strong>
-      <div class="info"></div>
-    </div>
-    <button class="ghost small">Remove</button>
-  </div>
-</template>
-
-<template id="order-item">
-  <div class="order-item">
-    <div>
-      <strong class="oid"></strong>
-      <div class="time"></div>
-    </div>
-    <div class="status"></div>
-  </div>
-</template>
-
-<!-- ================= SCRIPT ================= -->
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-/* CONFIG */
 const PRICE={bw:0.05,color:0.12,lamination:1.5};
 const TAX=0.07;
 const WA="919959814416";
+const MAX_MB=5;
 
-/* DOM */
 const $=id=>document.getElementById(id);
-const cartEl=$("cart"),ordersEl=$("orders");
+let cart=[];
 
-/* STATE */
-let cart=JSON.parse(localStorage.cart||"[]");
-let orders=JSON.parse(localStorage.orders||"[]");
-let currency=localStorage.currency||"EUR";
+const money=v=>"₹"+v.toFixed(2);
+const msg=t=>{$("msg").textContent=t;setTimeout(()=>$("msg").textContent="",3000);};
 
-/* UTILS */
-const sym={EUR:"€",INR:"₹",USD:"$"};
-const money=v=>sym[currency]+v.toFixed(2);
-const save=()=>{
-  localStorage.cart=JSON.stringify(cart);
-  localStorage.orders=JSON.stringify(orders);
-  localStorage.currency=currency;
-};
-
-/* CALC */
 function totals(){
   let sub=0;
   cart.forEach(i=>{
@@ -194,69 +121,75 @@ function totals(){
       ? PRICE[i.svc]*i.qty
       : PRICE[i.svc]*i.pages*i.qty;
   });
-  const tax=sub*TAX;
   $("sub").textContent=money(sub);
-  $("tax").textContent=money(tax);
-  $("total").textContent=money(sub+tax);
+  $("tax").textContent=money(sub*TAX);
+  $("total").textContent=money(sub+sub*TAX);
 }
 
-/* RENDER */
 function renderCart(){
-  cartEl.innerHTML=cart.length?"":"Cart empty";
+  $("cart").innerHTML=cart.length?"":"Cart empty";
   cart.forEach((i,idx)=>{
-    const t=$("cart-item").content.cloneNode(true);
-    t.querySelector(".svc").textContent=i.svc;
-    t.querySelector(".info").textContent=`${i.pages} × ${i.qty}`;
-    t.querySelector("button").onclick=()=>{
-      cart.splice(idx,1);save();renderCart();totals();
+    const d=document.createElement("div");
+    d.className="order-item";
+    d.innerHTML=`
+      <div>
+        <strong>${i.svc}</strong>
+        <div>${i.pages} pages × ${i.qty}</div>
+        <div class="muted">📄 ${i.fileName||"No document"}</div>
+      </div>
+      <button class="ghost small">Remove</button>
+    `;
+    d.querySelector("button").onclick=()=>{
+      cart.splice(idx,1);renderCart();totals();
     };
-    cartEl.appendChild(t);
-  });
-}
-function renderOrders(){
-  ordersEl.innerHTML=orders.length?"":"No orders";
-  orders.slice().reverse().forEach(o=>{
-    const t=$("order-item").content.cloneNode(true);
-    t.querySelector(".oid").textContent=o.id;
-    t.querySelector(".time").textContent=new Date(o.time).toLocaleString();
-    const st=t.querySelector(".status");
-    st.textContent=o.sent?"Sent":"Pending";
-    st.className="status "+(o.sent?"done":"pending");
-    ordersEl.appendChild(t);
+    $("cart").appendChild(d);
   });
 }
 
-/* EVENTS */
 $("addBtn").onclick=()=>{
+  const file=$("file").files[0];
+  if(file && file.size/(1024*1024)>MAX_MB){
+    msg("File too large (max 5MB)");
+    return;
+  }
   cart.push({
     svc:$("service").value,
     pages:+$("pages").value||1,
-    qty:+$("qty").value||1
+    qty:+$("qty").value||1,
+    fileName:file?file.name:null,
+    fileSize:file?((file.size/1024).toFixed(1)+" KB"):null
   });
-  save();renderCart();totals();
-};
-$("placeBtn").onclick=()=>{
-  if(!cart.length)return;
-  const order={
-    id:"PM"+Date.now(),
-    time:Date.now(),
-    items:cart,
-    sent:navigator.onLine
-  };
-  orders.push(order);
-  cart=[];
-  save();renderCart();renderOrders();totals();
-  window.open(`https://wa.me/${WA}?text=New%20Order%20${order.id}`,"_blank");
-};
-$("currency").value=currency;
-$("currency").onchange=e=>{
-  currency=e.target.value;save();totals();
+  $("file").value="";
+  renderCart();totals();msg("Added to cart");
 };
 
-/* INIT */
-renderCart();renderOrders();totals();
+$("placeBtn").onclick=()=>{
+  if(!cart.length)return msg("Cart empty");
+  const name=$("name").value.trim();
+  const phone=$("phone").value.trim();
+  const addr=$("addr").value.trim()||"Pickup";
+  if(!name||!phone)return msg("Name & phone required");
+
+  let text=`🟢 *NEW PRINT ORDER*\n\n`;
+  text+=`👤 *Customer:* ${name}\n`;
+  text+=`📞 *Phone:* ${phone}\n`;
+  text+=`📍 *Address:* ${addr}\n\n`;
+  text+=`📄 *Documents & Services*\n`;
+
+  cart.forEach((i,n)=>{
+    text+=`${n+1}. ${i.svc.toUpperCase()} | ${i.pages} pages × ${i.qty}\n`;
+    text+=`   File: ${i.fileName||"Not attached"}\n`;
+  });
+
+  text+=`\n💰 *Total:* ${$("total").textContent}\n`;
+  text+=`\n📎 *Note:* Customer will share document files in this chat.\n`;
+  text+=`\n— Sent from PrintMate`;
+
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(text)}`,"_blank");
+};
 
 });
 </script>
+
 </body>
 </html>
