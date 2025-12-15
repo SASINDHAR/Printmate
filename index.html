@@ -1,115 +1,108 @@
 <script>
-/* =========================
-   PrintMate – Professional JS
-   ========================= */
+document.addEventListener("DOMContentLoaded", () => {
 
-/* ---------- CONFIG ---------- */
+/* =========================
+   CONFIG
+========================= */
 const CONFIG = {
-  PRICES: {
-    bw_a4: 0.05,
-    color_a4: 0.12,
-    lamination: 1.5
-  },
+  PRICES: { bw_a4: 0.05, color_a4: 0.12, lamination: 1.5 },
   DELIVERY_FEE: 2.5,
   TAX_RATE: 0.07,
   MAX_UPLOAD_MB: 5,
-  WHATSAPP_NUMBER: "919959814416",
-  STORAGE_KEYS: {
-    CART: "printmate_cart",
-    ORDERS: "printmate_orders",
-    CURRENCY: "printmate_currency",
-    LOW_DATA: "printmate_lowdata"
-  }
+  WHATSAPP: "919959814416"
 };
 
-/* ---------- DOM ---------- */
+/* =========================
+   DOM
+========================= */
+const $ = id => document.getElementById(id);
+
 const DOM = {
-  cartList: document.getElementById("cartList"),
-  subtotal: document.getElementById("subtotal"),
-  delivery: document.getElementById("delivery"),
-  tax: document.getElementById("tax"),
-  total: document.getElementById("total"),
-  savedOrders: document.getElementById("savedOrders"),
-  message: document.getElementById("message"),
-  currency: document.getElementById("currency"),
-  lowDataSwitch: document.getElementById("lowDataSwitch")
+  cartList: $("cartList"),
+  subtotal: $("subtotal"),
+  delivery: $("delivery"),
+  tax: $("tax"),
+  total: $("total"),
+  savedOrders: $("savedOrders"),
+  message: $("message"),
+  currency: $("currency"),
+  lowDataSwitch: $("lowDataSwitch"),
+  max1: $("maxsizeLabel"),
+  max2: $("maxsizeLabelFooter")
 };
 
-/* ---------- STATE ---------- */
+if (DOM.max1) DOM.max1.textContent = CONFIG.MAX_UPLOAD_MB;
+if (DOM.max2) DOM.max2.textContent = CONFIG.MAX_UPLOAD_MB;
+
+/* =========================
+   STATE
+========================= */
 const state = {
-  cart: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CART)) || [],
-  orders: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS)) || [],
-  currency: localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENCY) || "EUR",
-  lowData: localStorage.getItem(CONFIG.STORAGE_KEYS.LOW_DATA) === "1"
+  cart: JSON.parse(localStorage.getItem("printmate_cart") || "[]"),
+  orders: JSON.parse(localStorage.getItem("printmate_orders") || "[]"),
+  currency: localStorage.getItem("printmate_currency") || "EUR"
 };
 
 DOM.currency.value = state.currency;
 
-/* ---------- UTILITIES ---------- */
-const currencySymbol = c =>
-  ({ EUR:"€", INR:"₹", USD:"$", NGN:"₦", KES:"KSh", GHS:"GHS" }[c] || "");
+/* =========================
+   UTIL
+========================= */
+const symbol = c => ({EUR:"€", INR:"₹", USD:"$", NGN:"₦", KES:"KSh", GHS:"GHS"}[c]||"");
+const money = v => symbol(state.currency) + v.toFixed(2);
 
-const formatMoney = value =>
-  `${currencySymbol(state.currency)}${value.toFixed(2)}`;
-
-const save = (key, data) =>
-  localStorage.setItem(key, JSON.stringify(data));
-
-const notify = (msg, timeout = 3000) => {
-  DOM.message.textContent = msg;
-  setTimeout(() => DOM.message.textContent = "", timeout);
+const save = () => {
+  localStorage.setItem("printmate_cart", JSON.stringify(state.cart));
+  localStorage.setItem("printmate_orders", JSON.stringify(state.orders));
 };
 
-/* ---------- CALCULATIONS ---------- */
-function calculateTotals() {
-  let subtotal = 0;
+const msg = t => {
+  DOM.message.textContent = t;
+  setTimeout(()=>DOM.message.textContent="",3000);
+};
 
-  state.cart.forEach(item => {
-    const unit = CONFIG.PRICES[item.service] || 0;
-    if (item.service === "lamination") {
-      subtotal += unit * item.qty;
-    } else {
-      subtotal += unit * item.pages * item.qty;
-    }
+/* =========================
+   CALCULATE
+========================= */
+function calculate() {
+  let sub = 0;
+  state.cart.forEach(i => {
+    const p = CONFIG.PRICES[i.service] || 0;
+    sub += i.service === "lamination"
+      ? p * i.qty
+      : p * i.pages * i.qty;
   });
+  const del = sub > 20 ? 0 : CONFIG.DELIVERY_FEE;
+  const tax = sub * CONFIG.TAX_RATE;
+  const total = sub + del + tax;
 
-  const delivery = subtotal > 20 ? 0 : CONFIG.DELIVERY_FEE;
-  const tax = subtotal * CONFIG.TAX_RATE;
-  const total = subtotal + delivery + tax;
-
-  DOM.subtotal.textContent = formatMoney(subtotal);
-  DOM.delivery.textContent = formatMoney(delivery);
-  DOM.tax.textContent = formatMoney(tax);
-  DOM.total.textContent = formatMoney(total);
-
-  return total;
+  DOM.subtotal.textContent = money(sub);
+  DOM.delivery.textContent = money(del);
+  DOM.tax.textContent = money(tax);
+  DOM.total.textContent = money(total);
 }
 
-/* ---------- RENDER ---------- */
+/* =========================
+   RENDER
+========================= */
 function renderCart() {
   if (!state.cart.length) {
     DOM.cartList.textContent = "No items yet";
     return;
   }
-
   DOM.cartList.innerHTML = "";
-  state.cart.forEach((item, i) => {
-    const div = document.createElement("div");
-    div.className = "order-item";
-    div.innerHTML = `
-      <div>
-        <strong>${item.service.replace("_"," ")}</strong>
-        <div class="tiny">${item.pages} pages × ${item.qty}</div>
-      </div>
+  state.cart.forEach((i, idx) => {
+    const d = document.createElement("div");
+    d.className = "order-item";
+    d.innerHTML = `
+      <div><strong>${i.service}</strong><div class="tiny">${i.pages} × ${i.qty}</div></div>
       <button class="small ghost">Remove</button>
     `;
-    div.querySelector("button").onclick = () => {
-      state.cart.splice(i,1);
-      save(CONFIG.STORAGE_KEYS.CART, state.cart);
-      renderCart();
-      calculateTotals();
+    d.querySelector("button").onclick = () => {
+      state.cart.splice(idx,1);
+      save(); renderCart(); calculate();
     };
-    DOM.cartList.appendChild(div);
+    DOM.cartList.appendChild(d);
   });
 }
 
@@ -118,99 +111,66 @@ function renderOrders() {
     DOM.savedOrders.textContent = "No saved orders";
     return;
   }
-
   DOM.savedOrders.innerHTML = "";
-  [...state.orders].reverse().forEach(o => {
-    const div = document.createElement("div");
-    div.className = "order-item";
-    div.innerHTML = `
-      <div>
-        <strong>${o.id}</strong>
-        <div class="tiny">${new Date(o.created).toLocaleString()}</div>
-      </div>
-      <div class="status ${o.synced ? "done" : "pending"}">
-        ${o.synced ? "Sent" : "Pending"}
-      </div>
+  state.orders.slice().reverse().forEach(o => {
+    const d = document.createElement("div");
+    d.className = "order-item";
+    d.innerHTML = `
+      <div><strong>${o.id}</strong><div class="tiny">${new Date(o.created).toLocaleString()}</div></div>
+      <div class="status ${o.synced?"done":"pending"}">${o.synced?"Sent":"Pending"}</div>
     `;
-    DOM.savedOrders.appendChild(div);
+    DOM.savedOrders.appendChild(d);
   });
 }
 
-/* ---------- CART ---------- */
-function addToCart() {
-  const service = document.getElementById("service").value;
-  const pages = Number(document.getElementById("pages").value) || 1;
-  const qty = Number(document.getElementById("qty").value) || 1;
-  const file = document.getElementById("file").files[0];
+/* =========================
+   CART
+========================= */
+$("addBtn").onclick = () => {
+  state.cart.push({
+    service: $("service").value,
+    pages: Number($("pages").value||1),
+    qty: Number($("qty").value||1)
+  });
+  save(); renderCart(); calculate(); msg("Added to cart");
+};
 
-  if (file && file.size / (1024*1024) > CONFIG.MAX_UPLOAD_MB) {
-    notify("File exceeds max size");
-    return;
-  }
+/* =========================
+   ORDER
+========================= */
+function placeOrder(online) {
+  if (!state.cart.length) return msg("Cart empty");
 
-  state.cart.push({ service, pages, qty, fileName: file?.name || null });
-  save(CONFIG.STORAGE_KEYS.CART, state.cart);
-
-  renderCart();
-  calculateTotals();
-  notify("Item added to cart");
-}
-
-/* ---------- ORDER ---------- */
-function placeOrder(isOnline) {
-  if (!state.cart.length) return notify("Cart is empty");
-
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const addr = document.getElementById("addr").value.trim() || "Pickup";
-
-  if (!name || !phone) return notify("Name & phone required");
+  const name = $("name").value.trim();
+  const phone = $("phone").value.trim();
+  if (!name || !phone) return msg("Name & phone required");
 
   const order = {
-    id: "PM-" + Date.now(),
+    id: "PM"+Date.now(),
     created: Date.now(),
-    customer: { name, phone, addr },
     items: state.cart,
-    currency: state.currency,
-    total: DOM.total.textContent,
-    synced: navigator.onLine && isOnline,
-    method: isOnline ? "online" : "cod"
+    synced: navigator.onLine && online
   };
 
   state.orders.push(order);
-  save(CONFIG.STORAGE_KEYS.ORDERS, state.orders);
-
   state.cart = [];
-  save(CONFIG.STORAGE_KEYS.CART, state.cart);
-
-  renderCart();
-  renderOrders();
-  notify("Order saved");
-
-  sendToWhatsApp(order);
-}
-
-/* ---------- WHATSAPP ---------- */
-function sendToWhatsApp(order) {
-  let msg = `🟢 *New Print Order*\nOrder: ${order.id}\nName: ${order.customer.name}\nPhone: ${order.customer.phone}\n\nItems:\n`;
-  order.items.forEach(i =>
-    msg += `• ${i.service} (${i.pages} × ${i.qty})\n`
-  );
-  msg += `\nTotal: ${order.total}`;
+  save(); renderCart(); renderOrders(); calculate();
 
   window.open(
-    `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,
+    `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent("New Order "+order.id)}`,
     "_blank"
   );
 }
 
-/* ---------- EVENTS ---------- */
-document.getElementById("addBtn").onclick = addToCart;
-document.getElementById("placeBtn").onclick = () => placeOrder(true);
-document.getElementById("codBtn").onclick = () => placeOrder(false);
+$("placeBtn").onclick = ()=>placeOrder(true);
+$("codBtn").onclick = ()=>placeOrder(false);
 
-/* ---------- INIT ---------- */
+/* =========================
+   INIT
+========================= */
 renderCart();
 renderOrders();
-calculateTotals();
+calculate();
+
+});
 </script>
