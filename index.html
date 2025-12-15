@@ -1,383 +1,216 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PrintMate — Lightweight</title>
-<meta name="description" content="Lightweight PrintMate frontend — low-bandwidth friendly, offline-capable." />
-<style>
-  :root{--bg:#f7fafc;--card:#fff;--muted:#6b7280;--primary:#334155;--accent:#4f46e5}
-  html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--primary);-webkit-font-smoothing:antialiased}
-  .wrap{max-width:980px;margin:0 auto;padding:16px}
-  header{display:flex;align-items:center;gap:12px;padding:12px 0}
-  .logo{width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-  h1{font-size:18px;margin:0}
-  p.lead{margin:6px 0 14px;color:var(--muted);font-size:13px}
-  main{display:grid;grid-template-columns:1fr;gap:14px}
-  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 0 rgba(16,24,40,0.04)}
-  .buttons{display:flex;gap:8px;flex-wrap:wrap}
-  button{background:var(--accent);color:white;border:0;padding:10px 12px;border-radius:8px;cursor:pointer}
-  button.ghost{background:transparent;color:var(--primary);border:1px solid #e6e9ef}
-  .small{font-size:13px;padding:8px 10px;border-radius:8px}
-  label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
-  input[type="text"], input[type="tel"], select, input[type="number"], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;box-sizing:border-box;margin-bottom:10px}
-  .grid-2{display:grid;grid-template-columns:1fr;gap:10px}
-  @media(min-width:720px){.grid-2{grid-template-columns:2fr 1fr}}
-  .summary{font-weight:600;font-size:15px}
-  .muted{color:var(--muted);font-size:13px}
-  .tiny{font-size:12px;color:var(--muted)}
-  .order-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px dashed #eee;margin-bottom:8px}
-  .order-actions{display:flex;gap:8px}
-  .status{padding:8px;border-radius:8px;font-weight:600}
-  .status.new{background:#f1f5f9;color:#0f172a}
-  .status.pending{background:#fff7ed;color:#92400e}
-  .status.done{background:#ecfccb;color:#14532d}
-  footer{margin-top:18px;padding:10px 0;color:var(--muted);font-size:13px;text-align:center}
-  .switch{display:inline-flex;align-items:center;gap:8px}
-  .checkbox{width:40px;height:22px;background:#e6e9ef;border-radius:999px;position:relative;cursor:pointer}
-  .knob{width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:all .15s}
-  .checkbox.on{background:var(--accent)}
-  .checkbox.on .knob{left:20px}
-  .notice{background:#fffbe6;border:1px solid #ffe58f;padding:8px;border-radius:8px;color:#664d03;font-size:13px}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <div class="logo">PM</div>
-      <div>
-        <h1>PrintMate — Lightweight</h1>
-        <p class="lead">Fast prints, low data usage, offline-capable. Works on simple phones & slow networks.</p>
-      </div>
-    </header>
-
-    <main>
-      <section class="card grid-2" aria-labelledby="order">
-        <div>
-          <h2 id="order" style="margin-top:0">Place an order</h2>
-
-          <label for="service">Service</label>
-          <select id="service" aria-label="Service">
-            <option value="bw_a4">A4 — Black & White (0.05 / page)</option>
-            <option value="color_a4">A4 — Color (0.12 / page)</option>
-            <option value="lamination">Lamination (flat fee)</option>
-          </select>
-
-          <label for="pages">Pages (if printing)</label>
-          <input id="pages" type="number" min="1" value="1" />
-
-          <label for="qty">Copies</label>
-          <input id="qty" type="number" min="1" value="1" />
-
-          <label for="file">Upload file (max <span id="maxsizeLabel">5</span> MB)</label>
-          <input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
-
-          <label for="name">Full name</label>
-          <input id="name" type="text" placeholder="Your name" />
-
-          <label for="phone">Phone number</label>
-          <input id="phone" type="tel" placeholder="+91 98765 43210" />
-
-          <label for="addr">Delivery address (or type 'pickup')</label>
-          <textarea id="addr" rows="2" placeholder="Street, city, landmark"></textarea>
-
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-            <div class="switch">
-              <div id="lowDataSwitch" class="checkbox" role="switch" aria-checked="false" title="Low data mode">
-                <div class="knob"></div>
-              </div>
-              <div class="tiny">Low-data mode</div>
-            </div>
-
-            <div style="margin-left:auto" class="tiny">Currency:
-              <select id="currency" style="font-size:13px;margin-left:6px">
-                <option value="EUR">€ Euro</option>
-                <option value="INR">₹ INR</option>
-                <option value="NGN">₦ NGN</option>
-                <option value="KES">KSh KES</option>
-                <option value="GHS">GHS</option>
-                <option value="USD">US$</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="buttons" style="margin-top:6px;">
-            <button id="addBtn" class="small">Add to cart</button>
-            <button id="placeBtn" class="small ghost" style="background:#f8fafc;border:1px solid #e6e9ef">Place order (online)</button>
-            <button id="codBtn" class="small ghost" style="background:#fff;border:1px solid #e6e9ef">Cash on delivery</button>
-          </div>
-
-          <div id="message" class="tiny" style="margin-top:8px;color:var(--muted)"></div>
-        </div>
-
-        <aside>
-          <h3 style="margin-top:0">Cart</h3>
-          <div id="cartList" aria-live="polite" class="muted tiny">No items yet</div>
-
-          <div style="margin-top:12px" class="card">
-            <div class="summary">Summary</div>
-            <div style="margin-top:8px">
-              <div class="muted tiny">Subtotal: <span id="subtotal">0.00</span></div>
-              <div class="muted tiny">Delivery: <span id="delivery">0.00</span></div>
-              <div class="muted tiny">Tax: <span id="tax">0.00</span></div>
-              <div style="margin-top:8px;font-weight:700">Total: <span id="total">0.00</span></div>
-              <div class="tiny" style="margin-top:8px">Payment methods: Card (placeholder), Mobile money (replace with local provider), Cash on delivery</div>
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <div class="notice">Tip: If your network is slow, enable <strong>Low-data mode</strong> to reduce usage. Orders saved locally if the network is offline.</div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="card" aria-labelledby="ordersTitle">
-        <h3 id="ordersTitle">Your saved orders (local)</h3>
-        <div id="savedOrders" class="muted tiny">No saved orders</div>
-      </section>
-
-      <section class="card">
-        <h3 style="margin-top:0">Shop info</h3>
-        <div class="muted tiny">
-          If you are a shop owner: open this site on a laptop and click "Sync pending" to see orders saved locally on phones (or ask customers to show the order ID). For production, add a server endpoint to receive orders.
-        </div>
-        <div style="margin-top:8px;" class="buttons">
-          <button id="syncBtn" class="small ghost">Sync pending</button>
-          <button id="clearBtn" class="small ghost">Clear local orders</button>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="muted tiny">© PrintMate prototype — works offline • Max upload <span id="maxsizeLabelFooter">5</span> MB</div>
-      <div class="tiny" style="margin-top:6px">Contact: +91 9959814416</div>
-    </footer>
-  </div>
-
 <script>
-/* Configuration */
-const PRICE = { bw_a4: 0.05, color_a4: 0.12, lamination: 1.5 };
-const DELIVERY_FEE = 2.5;
-const TAX_RATE = 0.07;
-const MAX_UPLOAD_MB = 5;
-const SHOP_WHATSAPP = "919959814416"; // shop number (no +)
+/* =========================
+   PrintMate – Professional JS
+   ========================= */
 
-/* Elements */
-document.getElementById('maxsizeLabel').textContent = MAX_UPLOAD_MB;
-document.getElementById('maxsizeLabelFooter').textContent = MAX_UPLOAD_MB;
-const els = {
-  cartList: document.getElementById('cartList'),
-  subtotal: document.getElementById('subtotal'),
-  delivery: document.getElementById('delivery'),
-  tax: document.getElementById('tax'),
-  total: document.getElementById('total'),
-  savedOrders: document.getElementById('savedOrders'),
-  message: document.getElementById('message'),
-  lowDataSwitch: document.getElementById('lowDataSwitch'),
-  currencySelect: document.getElementById('currency')
+/* ---------- CONFIG ---------- */
+const CONFIG = {
+  PRICES: {
+    bw_a4: 0.05,
+    color_a4: 0.12,
+    lamination: 1.5
+  },
+  DELIVERY_FEE: 2.5,
+  TAX_RATE: 0.07,
+  MAX_UPLOAD_MB: 5,
+  WHATSAPP_NUMBER: "919959814416",
+  STORAGE_KEYS: {
+    CART: "printmate_cart",
+    ORDERS: "printmate_orders",
+    CURRENCY: "printmate_currency",
+    LOW_DATA: "printmate_lowdata"
+  }
 };
 
-/* State */
-let cart = JSON.parse(localStorage.getItem('printmate_cart') || '[]');
-let orders = JSON.parse(localStorage.getItem('printmate_orders') || '[]');
-let lowData = false;
-let currency = localStorage.getItem('printmate_currency') || 'EUR';
-els.currencySelect.value = currency;
+/* ---------- DOM ---------- */
+const DOM = {
+  cartList: document.getElementById("cartList"),
+  subtotal: document.getElementById("subtotal"),
+  delivery: document.getElementById("delivery"),
+  tax: document.getElementById("tax"),
+  total: document.getElementById("total"),
+  savedOrders: document.getElementById("savedOrders"),
+  message: document.getElementById("message"),
+  currency: document.getElementById("currency"),
+  lowDataSwitch: document.getElementById("lowDataSwitch")
+};
 
-/* Utils */
-function fmt(v){
-  const sym = { EUR:'€', INR:'₹', NGN:'₦', KES:'KSh', GHS:'GHS', USD:'US$' }[currency] || '';
-  return sym + Number(v).toFixed(2);
-}
-function saveCart(){ localStorage.setItem('printmate_cart', JSON.stringify(cart)); }
-function saveOrders(){ localStorage.setItem('printmate_orders', JSON.stringify(orders)); }
-function showMessage(msg, timeout=3500){ els.message.textContent = msg; setTimeout(()=>{ if(els.message.textContent === msg) els.message.textContent = '' }, timeout); }
+/* ---------- STATE ---------- */
+const state = {
+  cart: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CART)) || [],
+  orders: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS)) || [],
+  currency: localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENCY) || "EUR",
+  lowData: localStorage.getItem(CONFIG.STORAGE_KEYS.LOW_DATA) === "1"
+};
 
-/* Render */
-function calculate() {
+DOM.currency.value = state.currency;
+
+/* ---------- UTILITIES ---------- */
+const currencySymbol = c =>
+  ({ EUR:"€", INR:"₹", USD:"$", NGN:"₦", KES:"KSh", GHS:"GHS" }[c] || "");
+
+const formatMoney = value =>
+  `${currencySymbol(state.currency)}${value.toFixed(2)}`;
+
+const save = (key, data) =>
+  localStorage.setItem(key, JSON.stringify(data));
+
+const notify = (msg, timeout = 3000) => {
+  DOM.message.textContent = msg;
+  setTimeout(() => DOM.message.textContent = "", timeout);
+};
+
+/* ---------- CALCULATIONS ---------- */
+function calculateTotals() {
   let subtotal = 0;
-  cart.forEach(it => {
-    const unit = PRICE[it.service] || 0;
-    subtotal += (unit * it.pages * it.qty) + (it.service === 'lamination' ? unit * it.qty : 0);
+
+  state.cart.forEach(item => {
+    const unit = CONFIG.PRICES[item.service] || 0;
+    if (item.service === "lamination") {
+      subtotal += unit * item.qty;
+    } else {
+      subtotal += unit * item.pages * item.qty;
+    }
   });
-  const delivery = subtotal > 20 ? 0 : DELIVERY_FEE;
-  const tax = subtotal * TAX_RATE;
+
+  const delivery = subtotal > 20 ? 0 : CONFIG.DELIVERY_FEE;
+  const tax = subtotal * CONFIG.TAX_RATE;
   const total = subtotal + delivery + tax;
-  els.subtotal.textContent = fmt(subtotal);
-  els.delivery.textContent = fmt(delivery);
-  els.tax.textContent = fmt(tax);
-  els.total.textContent = fmt(total);
+
+  DOM.subtotal.textContent = formatMoney(subtotal);
+  DOM.delivery.textContent = formatMoney(delivery);
+  DOM.tax.textContent = formatMoney(tax);
+  DOM.total.textContent = formatMoney(total);
+
+  return total;
 }
+
+/* ---------- RENDER ---------- */
 function renderCart() {
-  if (cart.length === 0) { els.cartList.textContent = 'No items yet'; return; }
-  els.cartList.innerHTML = '';
-  cart.forEach((it, idx) => {
-    const div = document.createElement('div'); div.className = 'order-item';
-    div.innerHTML = '<div><div style="font-weight:600">'+(it.service.replace('_',' '))+'</div><div class="tiny">'+it.pages+' pages • '+it.qty+' copies</div></div>';
-    const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
-    const price = document.createElement('div'); price.textContent = fmt(((PRICE[it.service]||0) * it.pages * it.qty)); price.className='tiny';
-    const del = document.createElement('button'); del.className='small ghost'; del.textContent='Remove';
-    del.onclick = ()=>{ cart.splice(idx,1); saveCart(); renderCart(); calculate(); };
-    right.appendChild(price); right.appendChild(del); div.appendChild(right);
-    els.cartList.appendChild(div);
-  });
-}
-function renderOrders(){
-  if (orders.length === 0) { els.savedOrders.textContent = 'No saved orders'; return; }
-  els.savedOrders.innerHTML = '';
-  orders.slice().reverse().forEach(o=>{
-    const d = document.createElement('div'); d.style.marginBottom='8px';
-    const head = document.createElement('div'); head.style.display='flex'; head.style.justifyContent='space-between';
-    head.innerHTML = '<div style="font-weight:700">'+o.id+'</div><div class="tiny">'+new Date(o.created).toLocaleString()+'</div>';
-    const st = document.createElement('div'); st.className = 'status ' + (o.synced? 'done':'pending'); st.style.marginTop='6px';
-    st.textContent = o.synced ? 'Sent' : 'Pending upload';
-    d.appendChild(head); d.appendChild(st);
-    d.style.padding='8px'; d.style.borderRadius='8px'; d.style.border='1px solid #efefef';
-    els.savedOrders.appendChild(d);
-  });
-}
-
-/* Add to cart */
-function addToCart() {
-  const svc = document.getElementById('service').value;
-  let pages = Number(document.getElementById('pages').value) || 1;
-  const qty = Number(document.getElementById('qty').value) || 1;
-  const fileInput = document.getElementById('file');
-  if (fileInput.files && fileInput.files[0]) {
-    const f = fileInput.files[0];
-    const mb = f.size / (1024*1024);
-    if (mb > MAX_UPLOAD_MB) { showMessage('File too large — choose a smaller file or use shop upload (max ' + MAX_UPLOAD_MB + ' MB).'); return; }
+  if (!state.cart.length) {
+    DOM.cartList.textContent = "No items yet";
+    return;
   }
-  const item = { service: svc, pages: pages, qty: qty, fileName: fileInput.files && fileInput.files[0] ? fileInput.files[0].name : null };
-  cart.push(item); saveCart(); renderCart(); calculate(); showMessage('Added to cart');
-}
 
-/* WhatsApp helper */
-function sendOrderToWhatsApp(order) {
-  // Build message (WhatsApp markdown-friendly)
-  let text = '🟢 *New PrintMate Order*\\n------------------------\\n';
-  text += `*Order ID:* ${order.id}\\n`;
-  text += `*Customer:* ${order.customer.name}\\n`;
-  text += `*Phone:* ${order.customer.phone}\\n`;
-  text += `*Address:* ${order.customer.addr}\\n\\n`;
-  text += `*Items:*\\n`;
-  order.items.forEach(it => {
-    text += `• ${it.service} — ${it.pages} pages × ${it.qty} copies\\n`;
+  DOM.cartList.innerHTML = "";
+  state.cart.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "order-item";
+    div.innerHTML = `
+      <div>
+        <strong>${item.service.replace("_"," ")}</strong>
+        <div class="tiny">${item.pages} pages × ${item.qty}</div>
+      </div>
+      <button class="small ghost">Remove</button>
+    `;
+    div.querySelector("button").onclick = () => {
+      state.cart.splice(i,1);
+      save(CONFIG.STORAGE_KEYS.CART, state.cart);
+      renderCart();
+      calculateTotals();
+    };
+    DOM.cartList.appendChild(div);
   });
-  text += `\\n*Total:* ${order.totalLocal}\\n`;
-  text += `*Currency:* ${order.currency}\\n`;
-  text += '------------------------\\n📩 Sent from PrintMate';
-  const encoded = encodeURIComponent(text);
-  const link = `https://wa.me/${SHOP_WHATSAPP}?text=${encoded}`;
-  // open new tab/window (user must press send)
-  window.open(link, '_blank');
 }
 
-/* Place order */
-function placeOrder(online=true) {
-  if (cart.length === 0) { showMessage('Cart empty'); return; }
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const addr = document.getElementById('addr').value.trim() || 'pickup';
-  if (!name || !phone) { showMessage('Please enter name and phone'); return; }
+function renderOrders() {
+  if (!state.orders.length) {
+    DOM.savedOrders.textContent = "No saved orders";
+    return;
+  }
+
+  DOM.savedOrders.innerHTML = "";
+  [...state.orders].reverse().forEach(o => {
+    const div = document.createElement("div");
+    div.className = "order-item";
+    div.innerHTML = `
+      <div>
+        <strong>${o.id}</strong>
+        <div class="tiny">${new Date(o.created).toLocaleString()}</div>
+      </div>
+      <div class="status ${o.synced ? "done" : "pending"}">
+        ${o.synced ? "Sent" : "Pending"}
+      </div>
+    `;
+    DOM.savedOrders.appendChild(div);
+  });
+}
+
+/* ---------- CART ---------- */
+function addToCart() {
+  const service = document.getElementById("service").value;
+  const pages = Number(document.getElementById("pages").value) || 1;
+  const qty = Number(document.getElementById("qty").value) || 1;
+  const file = document.getElementById("file").files[0];
+
+  if (file && file.size / (1024*1024) > CONFIG.MAX_UPLOAD_MB) {
+    notify("File exceeds max size");
+    return;
+  }
+
+  state.cart.push({ service, pages, qty, fileName: file?.name || null });
+  save(CONFIG.STORAGE_KEYS.CART, state.cart);
+
+  renderCart();
+  calculateTotals();
+  notify("Item added to cart");
+}
+
+/* ---------- ORDER ---------- */
+function placeOrder(isOnline) {
+  if (!state.cart.length) return notify("Cart is empty");
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const addr = document.getElementById("addr").value.trim() || "Pickup";
+
+  if (!name || !phone) return notify("Name & phone required");
 
   const order = {
-    id: 'PM' + Date.now().toString(36),
-    customer: { name, phone, addr },
-    items: cart.slice(),
-    totalLocal: els.total.textContent,
+    id: "PM-" + Date.now(),
     created: Date.now(),
-    synced: false,
-    method: online ? 'online' : 'cash_on_delivery',
-    currency: currency
+    customer: { name, phone, addr },
+    items: state.cart,
+    currency: state.currency,
+    total: DOM.total.textContent,
+    synced: navigator.onLine && isOnline,
+    method: isOnline ? "online" : "cod"
   };
 
-  // simulate online send if network available: mark synced (no server in prototype)
-  if (navigator.onLine && online) { order.synced = true; showMessage('Order placed (simulated online). ID: ' + order.id); }
-  else { showMessage('Order saved locally (offline or COD). ID: ' + order.id); }
+  state.orders.push(order);
+  save(CONFIG.STORAGE_KEYS.ORDERS, state.orders);
 
-  orders.push(order); saveOrders();
-  cart = []; saveCart(); renderCart(); renderOrders();
+  state.cart = [];
+  save(CONFIG.STORAGE_KEYS.CART, state.cart);
 
-  // OPEN WHATSAPP with order details to shop number
-  sendOrderToWhatsApp(order);
+  renderCart();
+  renderOrders();
+  notify("Order saved");
 
-  // reset form
-  document.getElementById('file').value = '';
-  document.getElementById('pages').value = '1';
-  document.getElementById('qty').value = '1';
-  document.getElementById('addr').value = '';
+  sendToWhatsApp(order);
 }
 
-/* Sync pending (simulated) */
-function syncPending(){
-  if (!navigator.onLine) { showMessage('No network — connect to the internet to sync'); return; }
-  let did = 0;
-  orders.forEach(o=>{ if(!o.synced){ o.synced = true; did++; }});
-  if (did) { saveOrders(); renderOrders(); showMessage('Synced ' + did + ' orders (simulated).'); }
-  else showMessage('No pending orders to sync');
+/* ---------- WHATSAPP ---------- */
+function sendToWhatsApp(order) {
+  let msg = `🟢 *New Print Order*\nOrder: ${order.id}\nName: ${order.customer.name}\nPhone: ${order.customer.phone}\n\nItems:\n`;
+  order.items.forEach(i =>
+    msg += `• ${i.service} (${i.pages} × ${i.qty})\n`
+  );
+  msg += `\nTotal: ${order.total}`;
+
+  window.open(
+    `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,
+    "_blank"
+  );
 }
 
-/* Events */
-document.getElementById('addBtn').addEventListener('click', addToCart);
-document.getElementById('placeBtn').addEventListener('click', ()=>placeOrder(true));
-document.getElementById('codBtn').addEventListener('click', ()=>placeOrder(false));
-document.getElementById('syncBtn').addEventListener('click', syncPending);
-document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('Clear all local orders?')){ orders=[]; saveOrders(); renderOrders(); showMessage('Cleared'); }});
-document.getElementById('currency').addEventListener('change', (e)=>{ currency=e.target.value; localStorage.setItem('printmate_currency', currency); calculate(); renderCart(); renderOrders(); });
-els.lowDataSwitch.addEventListener('click', ()=>{ lowData = !lowData; els.lowDataSwitch.classList.toggle('on', lowData); els.lowDataSwitch.setAttribute('aria-checked', String(lowData)); localStorage.setItem('printmate_lowdata', lowData ? '1' : '0'); showMessage('Low-data ' + (lowData ? 'enabled' : 'disabled')); });
+/* ---------- EVENTS ---------- */
+document.getElementById("addBtn").onclick = addToCart;
+document.getElementById("placeBtn").onclick = () => placeOrder(true);
+document.getElementById("codBtn").onclick = () => placeOrder(false);
 
-/* Init */
-renderCart(); calculate(); renderOrders();
-if (localStorage.getItem('printmate_lowdata') === '1') { els.lowDataSwitch.classList.add('on'); els.lowDataSwitch.setAttribute('aria-checked','true'); lowData = true; }
-
-/* Service Worker registration + inline blob fallback for static hosts */
-if ('serviceWorker' in navigator) {
-  // attempt to register separate sw file; if not present, blob fallback will register below
-  fetch('sw-printmate.js').then(r=>{
-    if (r.ok) {
-      navigator.serviceWorker.register('sw-printmate.js').catch(()=>{/* ignore */});
-    } else {
-      // blob fallback (created below)
-    }
-  }).catch(()=>{/* ignore */});
-}
-
-/* Inline creation of service worker file if not available on host */
-(function(){
-  const swContent = `
-const CACHE_NAME = 'printmate-v1';
-const ASSETS = [ '/', location.pathname ];
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
-});
-self.addEventListener('activate', event => { event.waitUntil(clients.claim()); });
-self.addEventListener('fetch', event => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-  event.respondWith(caches.match(req).then(cached => cached || fetch(req).catch(()=>caches.match('/'))));
-});
-`.trim();
-  if ('serviceWorker' in navigator) {
-    fetch('sw-printmate.js').then(r=>{
-      if (!r.ok) {
-        const blob = new Blob([swContent], {type:'application/javascript'});
-        const url = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(url).catch(()=>{/* ignore */});
-      } else {
-        // sw exists, nothing
-      }
-    }).catch(()=> {
-      const blob = new Blob([swContent], {type:'application/javascript'});
-      const url = URL.createObjectURL(blob);
-      navigator.serviceWorker.register(url).catch(()=>{/* ignore */});
-    });
-  }
-})();
-
-/* auto-sync hint when network returns */
-window.addEventListener('online', ()=>{ showMessage('Network available — you can sync pending orders.'); });
+/* ---------- INIT ---------- */
+renderCart();
+renderOrders();
+calculateTotals();
 </script>
-</body>
-</html>
