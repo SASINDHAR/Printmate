@@ -1,176 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PrintMate — Lightweight Printing</title>
+<meta name="description" content="Low-bandwidth print ordering system with offline support">
+
+<style>
+:root{
+  --bg:#f8fafc;--card:#fff;--muted:#6b7280;
+  --primary:#0f172a;--accent:#4f46e5
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);color:var(--primary)
+}
+.wrap{max-width:1000px;margin:auto;padding:16px}
+header{display:flex;gap:12px;align-items:center}
+.logo{
+  width:44px;height:44px;border-radius:8px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:grid;place-items:center;color:#fff;font-weight:700
+}
+.card{
+  background:var(--card);padding:14px;border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);margin-top:14px
+}
+.grid{display:grid;gap:14px}
+@media(min-width:800px){.grid{grid-template-columns:2fr 1fr}}
+label{font-size:13px;color:var(--muted)}
+input,select,textarea,button{
+  width:100%;padding:10px;border-radius:8px;
+  border:1px solid #e5e7eb;margin-top:6px
+}
+button{
+  background:var(--accent);color:#fff;border:none;cursor:pointer
+}
+button.ghost{background:#fff;color:var(--primary);border:1px solid #e5e7eb}
+.actions{display:flex;gap:8px;margin-top:10px}
+.small{font-size:13px;padding:8px}
+.order-item{
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px dashed #e5e7eb;padding:8px;border-radius:8px;margin-top:6px
+}
+.status.pending{color:#92400e}
+.status.done{color:#065f46}
+.notice{
+  background:#fffbeb;border:1px solid #fde68a;
+  padding:8px;border-radius:8px;font-size:13px
+}
+footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">PM</div>
+  <div>
+    <h2>PrintMate</h2>
+    <div class="muted">Lightweight • Offline • WhatsApp orders</div>
+  </div>
+</header>
+
+<main class="grid">
+
+<!-- ================= ORDER FORM ================= -->
+<section class="card">
+<h3>Place Order</h3>
+
+<label>Service</label>
+<select id="service">
+  <option value="bw">A4 B/W</option>
+  <option value="color">A4 Color</option>
+  <option value="lamination">Lamination</option>
+</select>
+
+<label>Pages</label>
+<input id="pages" type="number" value="1" min="1">
+
+<label>Copies</label>
+<input id="qty" type="number" value="1" min="1">
+
+<label>Customer Name</label>
+<input id="name" placeholder="Full name">
+
+<label>Phone</label>
+<input id="phone" placeholder="+91 XXXXXXXX">
+
+<label>Address / Pickup</label>
+<textarea id="addr" rows="2" placeholder="Pickup / Address"></textarea>
+
+<label>Currency</label>
+<select id="currency">
+  <option value="EUR">Euro (€)</option>
+  <option value="INR">INR (₹)</option>
+  <option value="USD">USD ($)</option>
+</select>
+
+<div class="actions">
+  <button id="addBtn" class="small">Add to Cart</button>
+  <button id="placeBtn" class="ghost small">Place Order</button>
+</div>
+
+<div id="msg" style="margin-top:8px;font-size:13px;color:#6b7280"></div>
+</section>
+
+<!-- ================= CART & SUMMARY ================= -->
+<section class="card">
+<h3>Cart</h3>
+<div id="cart"></div>
+
+<div class="card" style="margin-top:10px">
+  <div>Subtotal: <span id="sub">0</span></div>
+  <div>Tax: <span id="tax">0</span></div>
+  <strong>Total: <span id="total">0</span></strong>
+</div>
+
+<div class="notice" style="margin-top:10px">
+Orders are saved offline & sent via WhatsApp
+</div>
+</section>
+
+</main>
+
+<!-- ================= SAVED ORDERS ================= -->
+<section class="card">
+<h3>Saved Orders</h3>
+<div id="orders"></div>
+</section>
+
+<footer>
+© PrintMate Prototype • WhatsApp: +91 9959814416
+</footer>
+
+</div>
+
+<!-- ================= TEMPLATES ================= -->
+<template id="cart-item">
+  <div class="order-item">
+    <div>
+      <strong class="svc"></strong>
+      <div class="info"></div>
+    </div>
+    <button class="ghost small">Remove</button>
+  </div>
+</template>
+
+<template id="order-item">
+  <div class="order-item">
+    <div>
+      <strong class="oid"></strong>
+      <div class="time"></div>
+    </div>
+    <div class="status"></div>
+  </div>
+</template>
+
+<!-- ================= SCRIPT ================= -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded",()=>{
 
-/* =========================
-   CONFIG
-========================= */
-const CONFIG = {
-  PRICES: { bw_a4: 0.05, color_a4: 0.12, lamination: 1.5 },
-  DELIVERY_FEE: 2.5,
-  TAX_RATE: 0.07,
-  MAX_UPLOAD_MB: 5,
-  WHATSAPP: "919959814416"
+/* CONFIG */
+const PRICE={bw:0.05,color:0.12,lamination:1.5};
+const TAX=0.07;
+const WA="919959814416";
+
+/* DOM */
+const $=id=>document.getElementById(id);
+const cartEl=$("cart"),ordersEl=$("orders");
+
+/* STATE */
+let cart=JSON.parse(localStorage.cart||"[]");
+let orders=JSON.parse(localStorage.orders||"[]");
+let currency=localStorage.currency||"EUR";
+
+/* UTILS */
+const sym={EUR:"€",INR:"₹",USD:"$"};
+const money=v=>sym[currency]+v.toFixed(2);
+const save=()=>{
+  localStorage.cart=JSON.stringify(cart);
+  localStorage.orders=JSON.stringify(orders);
+  localStorage.currency=currency;
 };
 
-/* =========================
-   DOM
-========================= */
-const $ = id => document.getElementById(id);
-
-const DOM = {
-  cartList: $("cartList"),
-  subtotal: $("subtotal"),
-  delivery: $("delivery"),
-  tax: $("tax"),
-  total: $("total"),
-  savedOrders: $("savedOrders"),
-  message: $("message"),
-  currency: $("currency"),
-  lowDataSwitch: $("lowDataSwitch"),
-  max1: $("maxsizeLabel"),
-  max2: $("maxsizeLabelFooter")
-};
-
-if (DOM.max1) DOM.max1.textContent = CONFIG.MAX_UPLOAD_MB;
-if (DOM.max2) DOM.max2.textContent = CONFIG.MAX_UPLOAD_MB;
-
-/* =========================
-   STATE
-========================= */
-const state = {
-  cart: JSON.parse(localStorage.getItem("printmate_cart") || "[]"),
-  orders: JSON.parse(localStorage.getItem("printmate_orders") || "[]"),
-  currency: localStorage.getItem("printmate_currency") || "EUR"
-};
-
-DOM.currency.value = state.currency;
-
-/* =========================
-   UTIL
-========================= */
-const symbol = c => ({EUR:"€", INR:"₹", USD:"$", NGN:"₦", KES:"KSh", GHS:"GHS"}[c]||"");
-const money = v => symbol(state.currency) + v.toFixed(2);
-
-const save = () => {
-  localStorage.setItem("printmate_cart", JSON.stringify(state.cart));
-  localStorage.setItem("printmate_orders", JSON.stringify(state.orders));
-};
-
-const msg = t => {
-  DOM.message.textContent = t;
-  setTimeout(()=>DOM.message.textContent="",3000);
-};
-
-/* =========================
-   CALCULATE
-========================= */
-function calculate() {
-  let sub = 0;
-  state.cart.forEach(i => {
-    const p = CONFIG.PRICES[i.service] || 0;
-    sub += i.service === "lamination"
-      ? p * i.qty
-      : p * i.pages * i.qty;
+/* CALC */
+function totals(){
+  let sub=0;
+  cart.forEach(i=>{
+    sub+=i.svc==="lamination"
+      ? PRICE[i.svc]*i.qty
+      : PRICE[i.svc]*i.pages*i.qty;
   });
-  const del = sub > 20 ? 0 : CONFIG.DELIVERY_FEE;
-  const tax = sub * CONFIG.TAX_RATE;
-  const total = sub + del + tax;
-
-  DOM.subtotal.textContent = money(sub);
-  DOM.delivery.textContent = money(del);
-  DOM.tax.textContent = money(tax);
-  DOM.total.textContent = money(total);
+  const tax=sub*TAX;
+  $("sub").textContent=money(sub);
+  $("tax").textContent=money(tax);
+  $("total").textContent=money(sub+tax);
 }
 
-/* =========================
-   RENDER
-========================= */
-function renderCart() {
-  if (!state.cart.length) {
-    DOM.cartList.textContent = "No items yet";
-    return;
-  }
-  DOM.cartList.innerHTML = "";
-  state.cart.forEach((i, idx) => {
-    const d = document.createElement("div");
-    d.className = "order-item";
-    d.innerHTML = `
-      <div><strong>${i.service}</strong><div class="tiny">${i.pages} × ${i.qty}</div></div>
-      <button class="small ghost">Remove</button>
-    `;
-    d.querySelector("button").onclick = () => {
-      state.cart.splice(idx,1);
-      save(); renderCart(); calculate();
+/* RENDER */
+function renderCart(){
+  cartEl.innerHTML=cart.length?"":"Cart empty";
+  cart.forEach((i,idx)=>{
+    const t=$("cart-item").content.cloneNode(true);
+    t.querySelector(".svc").textContent=i.svc;
+    t.querySelector(".info").textContent=`${i.pages} × ${i.qty}`;
+    t.querySelector("button").onclick=()=>{
+      cart.splice(idx,1);save();renderCart();totals();
     };
-    DOM.cartList.appendChild(d);
+    cartEl.appendChild(t);
+  });
+}
+function renderOrders(){
+  ordersEl.innerHTML=orders.length?"":"No orders";
+  orders.slice().reverse().forEach(o=>{
+    const t=$("order-item").content.cloneNode(true);
+    t.querySelector(".oid").textContent=o.id;
+    t.querySelector(".time").textContent=new Date(o.time).toLocaleString();
+    const st=t.querySelector(".status");
+    st.textContent=o.sent?"Sent":"Pending";
+    st.className="status "+(o.sent?"done":"pending");
+    ordersEl.appendChild(t);
   });
 }
 
-function renderOrders() {
-  if (!state.orders.length) {
-    DOM.savedOrders.textContent = "No saved orders";
-    return;
-  }
-  DOM.savedOrders.innerHTML = "";
-  state.orders.slice().reverse().forEach(o => {
-    const d = document.createElement("div");
-    d.className = "order-item";
-    d.innerHTML = `
-      <div><strong>${o.id}</strong><div class="tiny">${new Date(o.created).toLocaleString()}</div></div>
-      <div class="status ${o.synced?"done":"pending"}">${o.synced?"Sent":"Pending"}</div>
-    `;
-    DOM.savedOrders.appendChild(d);
+/* EVENTS */
+$("addBtn").onclick=()=>{
+  cart.push({
+    svc:$("service").value,
+    pages:+$("pages").value||1,
+    qty:+$("qty").value||1
   });
-}
-
-/* =========================
-   CART
-========================= */
-$("addBtn").onclick = () => {
-  state.cart.push({
-    service: $("service").value,
-    pages: Number($("pages").value||1),
-    qty: Number($("qty").value||1)
-  });
-  save(); renderCart(); calculate(); msg("Added to cart");
+  save();renderCart();totals();
+};
+$("placeBtn").onclick=()=>{
+  if(!cart.length)return;
+  const order={
+    id:"PM"+Date.now(),
+    time:Date.now(),
+    items:cart,
+    sent:navigator.onLine
+  };
+  orders.push(order);
+  cart=[];
+  save();renderCart();renderOrders();totals();
+  window.open(`https://wa.me/${WA}?text=New%20Order%20${order.id}`,"_blank");
+};
+$("currency").value=currency;
+$("currency").onchange=e=>{
+  currency=e.target.value;save();totals();
 };
 
-/* =========================
-   ORDER
-========================= */
-function placeOrder(online) {
-  if (!state.cart.length) return msg("Cart empty");
-
-  const name = $("name").value.trim();
-  const phone = $("phone").value.trim();
-  if (!name || !phone) return msg("Name & phone required");
-
-  const order = {
-    id: "PM"+Date.now(),
-    created: Date.now(),
-    items: state.cart,
-    synced: navigator.onLine && online
-  };
-
-  state.orders.push(order);
-  state.cart = [];
-  save(); renderCart(); renderOrders(); calculate();
-
-  window.open(
-    `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent("New Order "+order.id)}`,
-    "_blank"
-  );
-}
-
-$("placeBtn").onclick = ()=>placeOrder(true);
-$("codBtn").onclick = ()=>placeOrder(false);
-
-/* =========================
-   INIT
-========================= */
-renderCart();
-renderOrders();
-calculate();
+/* INIT */
+renderCart();renderOrders();totals();
 
 });
 </script>
+</body>
+</html>
