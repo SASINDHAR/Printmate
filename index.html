@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PrintMate — Smart Printing</title>
-<meta name="description" content="Low-bandwidth print ordering with WhatsApp integration">
+<meta name="description" content="Print ordering via WhatsApp with Drive links">
 
 <style>
 :root{
@@ -62,9 +62,6 @@ button.ghost{
 .actions{display:flex;gap:8px;margin-top:10px}
 .small{font-size:13px;padding:8px}
 .order-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
   border:1px dashed #e5e7eb;
   padding:8px;
   border-radius:8px;
@@ -85,6 +82,12 @@ footer{
   margin:20px 0
 }
 .muted{color:var(--muted)}
+.link-item{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  margin-top:4px
+}
 </style>
 </head>
 
@@ -95,7 +98,7 @@ footer{
   <div class="logo">PM</div>
   <div>
     <h2>PrintMate</h2>
-    <div class="muted">Upload document • Drive link • WhatsApp order</div>
+    <div class="muted">Drive links • WhatsApp order • Simple & fast</div>
   </div>
 </header>
 
@@ -118,17 +121,13 @@ footer{
 <label>Copies</label>
 <input id="qty" type="number" min="1" value="1">
 
-<label>Upload Document (optional)</label>
-<input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
+<label>Add Google Drive / Cloud Link</label>
+<input id="driveInput" placeholder="https://drive.google.com/...">
+<button id="addLinkBtn" class="ghost small" style="margin-top:6px">
+➕ Add Link
+</button>
 
-<div id="fileInfo" class="notice" style="display:none"></div>
-
-<label>OR Paste Google Drive / Cloud Link (optional)</label>
-<input id="drive" placeholder="https://drive.google.com/...">
-
-<div class="notice">
-📌 You can upload a file, paste a Drive link, or do both.
-</div>
+<div id="driveList" class="notice" style="display:none"></div>
 
 <label>Customer Name</label>
 <input id="name" placeholder="Full name">
@@ -159,14 +158,14 @@ footer{
 </div>
 
 <div class="notice">
-📎 Files can be attached in WhatsApp or accessed via Drive link.
+🔗 Documents are shared only via Drive links
 </div>
 </section>
 
 </main>
 
 <footer>
-© PrintMate • WhatsApp Orders • +91 7730817844
+© PrintMate • WhatsApp Orders
 </footer>
 
 <script>
@@ -175,10 +174,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 const PRICE={bw:0.05,color:0.12,lamination:1.5};
 const TAX=0.07;
 const WA="919959814416";
-const MAX_MB=5;
 
 const $=id=>document.getElementById(id);
 let cart=[];
+let tempLinks=[];
 
 const money=v=>"₹"+v.toFixed(2);
 const msg=t=>{
@@ -186,17 +185,37 @@ const msg=t=>{
   setTimeout(()=>$("msg").textContent="",3000);
 };
 
-$("file").onchange=()=>{
-  const f=$("file").files[0];
-  if(!f)return;
-  if(f.size/(1024*1024)>MAX_MB){
-    msg("File too large (max 5MB)");
-    $("file").value="";
+$("addLinkBtn").onclick=()=>{
+  const link=$("driveInput").value.trim();
+  if(!link.startsWith("http")){
+    return msg("Please enter a valid Drive link");
+  }
+  tempLinks.push(link);
+  $("driveInput").value="";
+  renderTempLinks();
+};
+
+function renderTempLinks(){
+  if(!tempLinks.length){
+    $("driveList").style.display="none";
     return;
   }
-  $("fileInfo").style.display="block";
-  $("fileInfo").textContent=`Selected file: ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
-};
+  $("driveList").style.display="block";
+  $("driveList").innerHTML="<strong>Added Links:</strong>";
+  tempLinks.forEach((l,i)=>{
+    const d=document.createElement("div");
+    d.className="link-item";
+    d.innerHTML=`
+      <span>🔗 Link ${i+1}</span>
+      <button class="ghost small">Remove</button>
+    `;
+    d.querySelector("button").onclick=()=>{
+      tempLinks.splice(i,1);
+      renderTempLinks();
+    };
+    $("driveList").appendChild(d);
+  });
+}
 
 function totals(){
   let sub=0;
@@ -216,13 +235,10 @@ function renderCart(){
     const d=document.createElement("div");
     d.className="order-item";
     d.innerHTML=`
-      <div>
-        <strong>${i.svc.toUpperCase()}</strong>
-        <div>${i.pages} pages × ${i.qty}</div>
-        <div class="muted">📄 ${i.fileName || "No file"}</div>
-        ${i.drive ? `<div class="muted">🔗 Drive link added</div>` : ``}
-      </div>
-      <button class="ghost small">Remove</button>
+      <strong>${i.svc.toUpperCase()}</strong>
+      <div>${i.pages} pages × ${i.qty}</div>
+      <div class="muted">🔗 ${i.links.length} Drive link(s)</div>
+      <button class="ghost small" style="margin-top:6px">Remove</button>
     `;
     d.querySelector("button").onclick=()=>{
       cart.splice(idx,1);
@@ -234,25 +250,17 @@ function renderCart(){
 }
 
 $("addBtn").onclick=()=>{
-  const file=$("file").files[0];
-  const drive=$("drive").value.trim();
-
-  if(!file && !drive){
-    return msg("Please upload a file or provide a Drive link");
+  if(!tempLinks.length){
+    return msg("Please add at least one Drive link");
   }
-
   cart.push({
     svc:$("service").value,
     pages:+$("pages").value||1,
     qty:+$("qty").value||1,
-    fileName:file?file.name:null,
-    drive:drive||null
+    links:[...tempLinks]
   });
-
-  $("file").value="";
-  $("drive").value="";
-  $("fileInfo").style.display="none";
-
+  tempLinks=[];
+  renderTempLinks();
   renderCart();
   totals();
   msg("Added to cart");
@@ -271,18 +279,16 @@ $("placeBtn").onclick=()=>{
   text+=`👤 Customer: ${name}\n`;
   text+=`📞 Phone: ${phone}\n`;
   text+=`📍 Address: ${addr}\n\n`;
-  text+=`📄 Services\n`;
+  text+=`📄 Services & Drive Links\n`;
 
   cart.forEach((i,n)=>{
-    text+=`${n+1}. ${i.svc.toUpperCase()} | ${i.pages} pages × ${i.qty}\n`;
-    text+=`   File: ${i.fileName || "Not attached"}\n`;
-    if(i.drive){
-      text+=`   Drive: ${i.drive}\n`;
-    }
+    text+=`\n${n+1}. ${i.svc.toUpperCase()} | ${i.pages} pages × ${i.qty}\n`;
+    i.links.forEach((l,j)=>{
+      text+=`   🔗 Link ${j+1}: ${l}\n`;
+    });
   });
 
-  text+=`\n💰 Total: ${$("total").textContent}\n\n`;
-  text+=`📎 You may download files from Drive or wait for WhatsApp attachment.\n`;
+  text+=`\n💰 Total: ${$("total").textContent}\n`;
   text+=`\n— Sent via PrintMate`;
 
   window.open(
