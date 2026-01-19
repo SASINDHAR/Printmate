@@ -123,9 +123,7 @@ footer{
 
 <label>Add Google Drive / Cloud Link</label>
 <input id="driveInput" placeholder="https://drive.google.com/...">
-<button id="addLinkBtn" class="ghost small" style="margin-top:6px">
-➕ Add Link
-</button>
+<button id="addLinkBtn" class="ghost small" style="margin-top:6px">➕ Add Link</button>
 
 <div id="driveList" class="notice" style="display:none"></div>
 
@@ -151,7 +149,11 @@ footer{
 <h3>Cart</h3>
 <div id="cart">Cart empty</div>
 
-
+<div class="card" style="margin-top:10px">
+  <div>Subtotal: <span id="sub">₹0.00</span></div>
+  <div>Tax: <span id="tax">₹0.00</span></div>
+  <strong>Total: <span id="total">₹0.00</span></strong>
+</div>
 
 <div class="notice">
 🔗 Documents are shared only via Drive links
@@ -167,26 +169,27 @@ footer{
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-const TAX=0.07;
-const WA="919959814416";
+const PRICE = { bw:0.05, color:0.12, lamination:1.5 };
+const TAX = 0.07;
+const WA = "919959814416";
 
-const $=id=>document.getElementById(id);
-let cart=[];
-let tempLinks=[];
+const $ = id => document.getElementById(id);
+let cart = [];
+let tempLinks = [];
 
-const money=v=>"₹"+v.toFixed(2);
-const msg=t=>{
-  $("msg").textContent=t;
-  setTimeout(()=>$("msg").textContent="",3000);
+const money = v => "₹" + v.toFixed(2);
+const msg = t => {
+  $("msg").textContent = t;
+  setTimeout(() => $("msg").textContent = "", 3000);
 };
 
-$("addLinkBtn").onclick=()=>{
-  const link=$("driveInput").value.trim();
-  if(!link.startsWith("http")){
+$("addLinkBtn").onclick = () => {
+  const link = $("driveInput").value.trim();
+  if(!/^https?:\/\//i.test(link)){
     return msg("Please enter a valid Drive link");
   }
   tempLinks.push(link);
-  $("driveInput").value="";
+  $("driveInput").value = "";
   renderTempLinks();
 };
 
@@ -200,10 +203,8 @@ function renderTempLinks(){
   tempLinks.forEach((l,i)=>{
     const d=document.createElement("div");
     d.className="link-item";
-    d.innerHTML=`
-      <span>🔗 Link ${i+1}</span>
-      <button class="ghost small">Remove</button>
-    `;
+    d.innerHTML=`<span>🔗 Link ${i+1}</span>
+                 <button class="ghost small">Remove</button>`;
     d.querySelector("button").onclick=()=>{
       tempLinks.splice(i,1);
       renderTempLinks();
@@ -215,17 +216,17 @@ function renderTempLinks(){
 function totals(){
   let sub=0;
   cart.forEach(i=>{
-    sub+=i.svc==="lamination"
+    sub+= i.svc==="lamination"
       ? PRICE[i.svc]*i.qty
       : PRICE[i.svc]*i.pages*i.qty;
   });
-  $("sub").textContent=money(sub);
-  $("tax").textContent=money(sub*TAX);
-  $("total").textContent=money(sub+sub*TAX);
+  $("sub").textContent = money(sub);
+  $("tax").textContent = money(sub*TAX);
+  $("total").textContent = money(sub + sub*TAX);
 }
 
 function renderCart(){
-  $("cart").innerHTML=cart.length?"":"Cart empty";
+  $("cart").innerHTML = cart.length ? "" : "Cart empty";
   cart.forEach((i,idx)=>{
     const d=document.createElement("div");
     d.className="order-item";
@@ -286,10 +287,7 @@ $("placeBtn").onclick=()=>{
   text+=`\n💰 Total: ${$("total").textContent}\n`;
   text+=`\n— Sent via PrintMate`;
 
-  window.open(
-    `https://wa.me/${WA}?text=${encodeURIComponent(text)}`,
-    "_blank"
-  );
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(text)}`,"_blank");
 };
 
 });
