@@ -7,24 +7,84 @@
 <meta name="description" content="Low-bandwidth print ordering with WhatsApp integration">
 
 <style>
-:root{--bg:#f8fafc;--card:#fff;--muted:#6b7280;--primary:#0f172a;--accent:#4f46e5}
+:root{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --primary:#0f172a;
+  --accent:#4f46e5;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--primary)}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);
+  color:var(--primary)
+}
 .wrap{max-width:1000px;margin:auto;padding:16px}
 header{display:flex;gap:12px;align-items:center}
-.logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:grid;place-items:center;color:#fff;font-weight:700}
-.card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-top:14px}
+.logo{
+  width:44px;height:44px;border-radius:8px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:grid;place-items:center;
+  color:#fff;font-weight:700
+}
+.card{
+  background:var(--card);
+  padding:14px;
+  border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+  margin-top:14px
+}
 .grid{display:grid;gap:14px}
-@media(min-width:800px){.grid{grid-template-columns:2fr 1fr}}
+@media(min-width:800px){
+  .grid{grid-template-columns:2fr 1fr}
+}
 label{font-size:13px;color:var(--muted)}
-input,select,textarea,button{width:100%;padding:10px;border-radius:8px;border:1px solid #e5e7eb;margin-top:6px}
-button{background:var(--accent);color:#fff;border:none;cursor:pointer}
-button.ghost{background:#fff;color:var(--primary);border:1px solid #e5e7eb}
+input,select,textarea,button{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  margin-top:6px
+}
+button{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  cursor:pointer
+}
+button.ghost{
+  background:#fff;
+  color:var(--primary);
+  border:1px solid #e5e7eb
+}
 .actions{display:flex;gap:8px;margin-top:10px}
 .small{font-size:13px;padding:8px}
-.order-item{display:flex;justify-content:space-between;align-items:center;border:1px dashed #e5e7eb;padding:8px;border-radius:8px;margin-top:6px}
-.notice{background:#fffbeb;border:1px solid #fde68a;padding:8px;border-radius:8px;font-size:13px}
-footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
+.order-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border:1px dashed #e5e7eb;
+  padding:8px;
+  border-radius:8px;
+  margin-top:6px
+}
+.notice{
+  background:#fffbeb;
+  border:1px solid #fde68a;
+  padding:8px;
+  border-radius:8px;
+  font-size:13px;
+  margin-top:8px
+}
+footer{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin:20px 0
+}
+.muted{color:var(--muted)}
 </style>
 </head>
 
@@ -61,6 +121,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
 <label>Upload Document (PDF / Image)</label>
 <input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
 
+<div id="fileInfo" class="notice" style="display:none"></div>
+
 <label>Customer Name</label>
 <input id="name" placeholder="Full name">
 
@@ -84,13 +146,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:20px 0}
 <div id="cart">Cart empty</div>
 
 <div class="card" style="margin-top:10px">
-  <div>Subtotal: <span id="sub">0</span></div>
-  <div>Tax: <span id="tax">0</span></div>
-  <strong>Total: <span id="total">0</span></strong>
+  <div>Subtotal: <span id="sub">₹0.00</span></div>
+  <div>Tax: <span id="tax">₹0.00</span></div>
+  <strong>Total: <span id="total">₹0.00</span></strong>
 </div>
 
-<div class="notice" style="margin-top:10px">
-📎 Documents are shared by customer directly in WhatsApp chat
+<div class="notice">
+📎 After WhatsApp opens, please attach the document using the 📎 button.
 </div>
 </section>
 
@@ -112,7 +174,22 @@ const $=id=>document.getElementById(id);
 let cart=[];
 
 const money=v=>"₹"+v.toFixed(2);
-const msg=t=>{$("msg").textContent=t;setTimeout(()=>$("msg").textContent="",3000);};
+const msg=t=>{
+  $("msg").textContent=t;
+  setTimeout(()=>$("msg").textContent="",3000);
+};
+
+$("file").onchange=()=>{
+  const f=$("file").files[0];
+  if(!f)return;
+  if(f.size/(1024*1024)>MAX_MB){
+    msg("File too large (max 5MB)");
+    $("file").value="";
+    return;
+  }
+  $("fileInfo").style.display="block";
+  $("fileInfo").textContent=`Selected file: ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+};
 
 function totals(){
   let sub=0;
@@ -133,14 +210,16 @@ function renderCart(){
     d.className="order-item";
     d.innerHTML=`
       <div>
-        <strong>${i.svc}</strong>
+        <strong>${i.svc.toUpperCase()}</strong>
         <div>${i.pages} pages × ${i.qty}</div>
         <div class="muted">📄 ${i.fileName||"No document"}</div>
       </div>
       <button class="ghost small">Remove</button>
     `;
     d.querySelector("button").onclick=()=>{
-      cart.splice(idx,1);renderCart();totals();
+      cart.splice(idx,1);
+      renderCart();
+      totals();
     };
     $("cart").appendChild(d);
   });
@@ -148,44 +227,51 @@ function renderCart(){
 
 $("addBtn").onclick=()=>{
   const file=$("file").files[0];
-  if(file && file.size/(1024*1024)>MAX_MB){
-    msg("File too large (max 5MB)");
-    return;
-  }
   cart.push({
     svc:$("service").value,
     pages:+$("pages").value||1,
     qty:+$("qty").value||1,
-    fileName:file?file.name:null,
-    fileSize:file?((file.size/1024).toFixed(1)+" KB"):null
+    fileName:file?file.name:null
   });
   $("file").value="";
-  renderCart();totals();msg("Added to cart");
+  $("fileInfo").style.display="none";
+  renderCart();
+  totals();
+  msg("Added to cart");
 };
 
 $("placeBtn").onclick=()=>{
   if(!cart.length)return msg("Cart empty");
+
   const name=$("name").value.trim();
   const phone=$("phone").value.trim();
   const addr=$("addr").value.trim()||"Pickup";
+
   if(!name||!phone)return msg("Name & phone required");
 
   let text=`🟢 *NEW PRINT ORDER*\n\n`;
-  text+=`👤 *Customer:* ${name}\n`;
-  text+=`📞 *Phone:* ${phone}\n`;
-  text+=`📍 *Address:* ${addr}\n\n`;
-  text+=`📄 *Documents & Services*\n`;
+  text+=`👤 Customer: ${name}\n`;
+  text+=`📞 Phone: ${phone}\n`;
+  text+=`📍 Address: ${addr}\n\n`;
+  text+=`📄 Services\n`;
 
   cart.forEach((i,n)=>{
     text+=`${n+1}. ${i.svc.toUpperCase()} | ${i.pages} pages × ${i.qty}\n`;
     text+=`   File: ${i.fileName||"Not attached"}\n`;
   });
 
-  text+=`\n💰 *Total:* ${$("total").textContent}\n`;
-  text+=`\n📎 *Note:* Customer will share document files in this chat.\n`;
-  text+=`\n— Sent from PrintMate`;
+  text+=`\n💰 Total: ${$("total").textContent}\n\n`;
+  text+=`📎 *IMPORTANT*\n`;
+  text+=`Please attach your document using the 📎 button now.\n`;
+  if(cart[0].fileName){
+    text+=`(File name: ${cart[0].fileName})\n`;
+  }
+  text+=`\n— Sent via PrintMate`;
 
-  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(text)}`,"_blank");
+  window.open(
+    `https://wa.me/${WA}?text=${encodeURIComponent(text)}`,
+    "_blank"
+  );
 };
 
 });
