@@ -95,7 +95,7 @@ footer{
   <div class="logo">PM</div>
   <div>
     <h2>PrintMate</h2>
-    <div class="muted">Upload document • WhatsApp order • Offline ready</div>
+    <div class="muted">Upload document • Drive link • WhatsApp order</div>
   </div>
 </header>
 
@@ -118,10 +118,17 @@ footer{
 <label>Copies</label>
 <input id="qty" type="number" min="1" value="1">
 
-<label>Upload Document (PDF / Image)</label>
+<label>Upload Document (optional)</label>
 <input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
 
 <div id="fileInfo" class="notice" style="display:none"></div>
+
+<label>OR Paste Google Drive / Cloud Link (optional)</label>
+<input id="drive" placeholder="https://drive.google.com/...">
+
+<div class="notice">
+📌 You can upload a file, paste a Drive link, or do both.
+</div>
 
 <label>Customer Name</label>
 <input id="name" placeholder="Full name">
@@ -152,7 +159,7 @@ footer{
 </div>
 
 <div class="notice">
-📎 After WhatsApp opens, please attach the document using the 📎 button.
+📎 Files can be attached in WhatsApp or accessed via Drive link.
 </div>
 </section>
 
@@ -212,7 +219,8 @@ function renderCart(){
       <div>
         <strong>${i.svc.toUpperCase()}</strong>
         <div>${i.pages} pages × ${i.qty}</div>
-        <div class="muted">📄 ${i.fileName||"No document"}</div>
+        <div class="muted">📄 ${i.fileName || "No file"}</div>
+        ${i.drive ? `<div class="muted">🔗 Drive link added</div>` : ``}
       </div>
       <button class="ghost small">Remove</button>
     `;
@@ -227,14 +235,24 @@ function renderCart(){
 
 $("addBtn").onclick=()=>{
   const file=$("file").files[0];
+  const drive=$("drive").value.trim();
+
+  if(!file && !drive){
+    return msg("Please upload a file or provide a Drive link");
+  }
+
   cart.push({
     svc:$("service").value,
     pages:+$("pages").value||1,
     qty:+$("qty").value||1,
-    fileName:file?file.name:null
+    fileName:file?file.name:null,
+    drive:drive||null
   });
+
   $("file").value="";
+  $("drive").value="";
   $("fileInfo").style.display="none";
+
   renderCart();
   totals();
   msg("Added to cart");
@@ -257,15 +275,14 @@ $("placeBtn").onclick=()=>{
 
   cart.forEach((i,n)=>{
     text+=`${n+1}. ${i.svc.toUpperCase()} | ${i.pages} pages × ${i.qty}\n`;
-    text+=`   File: ${i.fileName||"Not attached"}\n`;
+    text+=`   File: ${i.fileName || "Not attached"}\n`;
+    if(i.drive){
+      text+=`   Drive: ${i.drive}\n`;
+    }
   });
 
   text+=`\n💰 Total: ${$("total").textContent}\n\n`;
-  text+=`📎 *IMPORTANT*\n`;
-  text+=`Please attach your document using the 📎 button now.\n`;
-  if(cart[0].fileName){
-    text+=`(File name: ${cart[0].fileName})\n`;
-  }
+  text+=`📎 You may download files from Drive or wait for WhatsApp attachment.\n`;
   text+=`\n— Sent via PrintMate`;
 
   window.open(
