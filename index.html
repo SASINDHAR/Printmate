@@ -152,9 +152,9 @@ footer{
 <div id="cart">Cart empty</div>
 
 <div class="card" style="margin-top:10px">
-  <div>Subtotal: <span id="sub">₹0.00</span></div>
-  <div>Tax: <span id="tax">₹0.00</span></div>
-  <strong>Total: <span id="total">₹0.00</span></strong>
+  <div>Subtotal: <span id="sub">€0.00</span></div>
+  <div>Tax: <span id="tax">€0.00</span></div>
+  <strong>Total: <span id="total">€0.00</span></strong>
 </div>
 
 <div class="notice">
@@ -179,7 +179,7 @@ const $=id=>document.getElementById(id);
 let cart=[];
 let tempLinks=[];
 
-const money=v=>"₹"+v.toFixed(2);
+const money=v=>"€"+v.toFixed(2);
 const msg=t=>{
   $("msg").textContent=t;
   setTimeout(()=>$("msg").textContent="",3000);
